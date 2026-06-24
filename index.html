@@ -80,6 +80,7 @@
             gap: 6px;
             min-height: 44px;
             box-shadow: 0 4px 30px rgba(0, 229, 204, 0.05);
+            z-index: 1002;
         }
 
         .top-bar .brand {
@@ -90,6 +91,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .top-bar .brand .logo {
@@ -113,6 +115,7 @@
             border-radius: 4px;
             font-family: 'Courier New', monospace;
             font-weight: 600;
+            flex-shrink: 0;
         }
 
         .status-items {
@@ -120,6 +123,8 @@
             gap: 6px;
             align-items: center;
             flex-wrap: wrap;
+            flex: 1;
+            justify-content: flex-end;
         }
 
         .status-item {
@@ -133,6 +138,7 @@
             align-items: center;
             gap: 4px;
             font-weight: 500;
+            flex-shrink: 0;
         }
 
         .status-item.active {
@@ -150,6 +156,34 @@
         }
 
         .status-item i { font-size: 0.5rem; opacity: 0.8; }
+
+        /* ===== PUFF PIE BUTTON IN HEADER ===== */
+        .header-pie-btn {
+            background: rgba(155, 89, 182, 0.15);
+            border: 1px solid #9B59B6;
+            color: #9B59B6;
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.55rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 600;
+            pointer-events: auto;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .header-pie-btn:hover {
+            background: rgba(155, 89, 182, 0.25);
+            transform: translateY(-1px);
+            box-shadow: 0 0 20px rgba(155, 89, 182, 0.2);
+        }
+
+        .header-pie-btn i { font-size: 0.5rem; }
 
         /* ===== VERSION SELECTOR ===== */
         .version-selector {
@@ -438,7 +472,7 @@
             gap: 4px;
             flex-wrap: wrap;
             pointer-events: auto;
-            max-width: 75%;
+            max-width: 85%;
         }
 
         .action-btn {
@@ -501,16 +535,6 @@
 
         .action-btn.success:hover { 
             background: rgba(0, 230, 118, 0.1);
-        }
-
-        /* ===== PUFF PIE BUTTON ===== */
-        .action-btn.pie-btn {
-            border-color: #9B59B6;
-            color: #9B59B6;
-        }
-
-        .action-btn.pie-btn:hover {
-            background: rgba(155, 89, 182, 0.15);
         }
 
         /* ===== EXPORT BUTTONS ===== */
@@ -661,6 +685,7 @@
             .coord-panel { left: auto; right: 210px; top: 96px; min-width: 120px; }
             .panel-left { width: 110px; }
             .panel-right .threat-index { font-size: 1.8rem; }
+            .header-pie-btn { font-size: 0.45rem; padding: 2px 10px; }
         }
 
         @media (max-width: 768px) {
@@ -678,6 +703,7 @@
             .coord-panel { font-size: 0.4rem; padding: 4px 8px; }
             .coord-panel .coord-value { font-size: 0.4rem; }
             .bottom-bar { font-size: 0.4rem; padding: 4px 8px; }
+            .header-pie-btn { font-size: 0.4rem; padding: 2px 8px; }
         }
 
         @media (max-width: 480px) {
@@ -693,6 +719,7 @@
             .version-selector { top: 44px; padding: 2px 4px; }
             .panel-right { display: none; }
             .panel-left { display: none; }
+            .header-pie-btn { font-size: 0.35rem; padding: 1px 6px; }
         }
 
         /* ===== SCROLLBAR GLOBAL ===== */
@@ -799,6 +826,11 @@
         </div>
         <div class="version-badge" id="versionBadge">CIVIL · v5.0</div>
         <div class="status-items">
+            <!-- ===== PUFF PIE BUTTON IN HEADER ===== -->
+            <button class="header-pie-btn" id="openPuffPieBtn">
+                <i class="fas fa-chart-pie"></i> PIE
+            </button>
+            
             <span class="status-item active" id="gpsStatusItem">
                 <i class="fas fa-satellite-dish"></i>
                 <span id="gpsStatusText">GPS</span>
@@ -1009,11 +1041,6 @@
             <i class="fas fa-trash-alt"></i> CLR
         </button>
         
-        <!-- ===== PUFF PIE BUTTON ===== -->
-        <button class="action-btn pie-btn" id="openPuffPieBtn">
-            <i class="fas fa-chart-pie"></i> PIE
-        </button>
-        
         <!-- ===== EXPORT BUTTONS ===== -->
         <button class="action-btn export-btn" id="exportPdfBtn">
             <i class="fas fa-file-pdf"></i> PDF
@@ -1058,7 +1085,7 @@
 // - AES-GCM Encryption
 // - WebSocket
 // - Drag & Drop
-// - PUFF PIE Module Link
+// - PUFF PIE Module Link (Header)
 // ================================================================
 
 // ===== CONFIGURATION =====
