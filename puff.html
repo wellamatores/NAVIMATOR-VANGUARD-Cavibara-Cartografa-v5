@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NAVIMATOR VANGUARD · MAP PUFF PIE</title>
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/utm@1.1.1/utm.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mgrs@1.0.0/mgrs.min.js"></script>
+    
+    <style>
+        /* ================================================================
+           NAVIMATOR VANGUARD v5.0 · MAP PUFF PIE
+           ================================================================ */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #00E5CC;
+            --secondary: #2A8CFF;
+            --accent: #FFD700;
+            --danger: #FF4A4A;
+            --bg-dark: #0A0F0A;
+            --bg-panel: rgba(0, 5, 0, 0.92);
+            --text-primary: #E0F0E0;
+            --text-secondary: #8BC88B;
+            --border-color: #1A3A1A;
+            --shadow: 0 4px 30px rgba(0, 229, 204, 0.08);
+        }
+
+        body, html { 
+            width: 100%; height: 100%; overflow: hidden; 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            user-select: none;
+        }
+
+        #map { width: 100vw; height: 100vh; position: relative; }
+
+        /* ===== HUD CONTAINER ===== */
+        .hud-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* ===== GLASSMORPHISM PANELS ===== */
+        .glass-panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 229, 204, 0.15);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        /* ===== TOP BAR ===== */
+        .top-bar {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 229, 204, 0.2);
+            border-radius: 8px;
+            padding: 6px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-height: 44px;
+            box-shadow: 0 4px 30px rgba(0, 229, 204, 0.05);
+        }
+
+        .top-bar .brand {
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-bar .brand .logo {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #000;
+        }
+
+        .version-badge {
+            background: rgba(0, 229, 204, 0.12);
+            border: 1px solid rgba(0, 229, 204, 0.25);
+            color: var(--primary);
+            font-size: 0.55rem;
+            padding: 3px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .status-items {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            color: var(--text-secondary);
+            font-size: 0.55rem;
+            padding: 2px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: rgba(10, 26, 10, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 500;
+        }
+
+        .status-item.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(0, 229, 204, 0.08);
+        }
+
+        .status-item .value {
+            font-weight: 700;
+            font-size: 0.65rem;
+            color: #fff;
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .status-item i { font-size: 0.5rem; opacity: 0.8; }
+
+        /* ===== COORDINATE PANEL ===== */
+        .coord-panel {
+            position: absolute;
+            top: 96px;
+            left: 166px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border-right: 3px solid var(--secondary);
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+            min-width: 160px;
+            box-shadow: var(--shadow);
+        }
+
+        .coord-panel div { 
+            padding: 2px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .coord-panel i { 
+            color: var(--secondary); 
+            width: 14px;
+            font-size: 0.45rem;
+        }
+
+        .coord-panel .coord-value {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* ===== RIGHT PANEL ===== */
+        .panel-right {
+            position: absolute;
+            right: 8px;
+            top: 96px;
+            width: 240px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border-right: 3px solid var(--primary);
+            padding: 10px 14px;
+            border-radius: 8px;
+            pointer-events: none;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            box-shadow: var(--shadow);
+        }
+
+        .panel-right::-webkit-scrollbar { width: 3px; }
+        .panel-right::-webkit-scrollbar-track { background: transparent; }
+        .panel-right::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 2px; }
+
+        .panel-right .analysis-title {
+            color: var(--primary);
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+            margin-bottom: 6px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .panel-right .threat-index {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            line-height: 1.2;
+        }
+
+        .panel-right .threat-label {
+            text-align: center;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-right .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin: 6px 0;
+        }
+
+        .panel-right .stat-grid .stat-item {
+            background: rgba(10, 26, 10, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 4px 6px;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.45rem;
+            color: var(--text-secondary);
+        }
+
+        .panel-right .stat-grid .stat-item .value {
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.7rem;
+            display: block;
+            margin-top: 1px;
+        }
+
+        .panel-right .reco-item {
+            color: var(--text-secondary);
+            font-size: 0.5rem;
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(42, 140, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .panel-right .reco-item i { 
+            color: var(--secondary); 
+            width: 14px; 
+            font-size: 0.5rem;
+        }
+
+        .panel-right .reco-item:last-child { border-bottom: none; }
+
+        /* ===== BOTTOM BAR ===== */
+        .bottom-bar {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+            gap: 4px;
+            min-height: 28px;
+        }
+
+        .bottom-bar i { 
+            color: var(--secondary); 
+            margin-right: 4px;
+            font-size: 0.45rem;
+        }
+
+        .bottom-bar .gps-status { color: var(--danger); font-weight: 600; }
+        .bottom-bar .gps-status.active { color: var(--primary); }
+
+        /* ===== ACTION BAR ===== */
+        .action-bar {
+            position: absolute;
+            bottom: 44px;
+            left: 8px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            pointer-events: auto;
+            max-width: 75%;
+        }
+
+        .action-btn {
+            background: rgba(10, 26, 10, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            min-height: 24px;
+            font-weight: 500;
+        }
+
+        .action-btn:hover {
+            background: rgba(26, 58, 26, 0.8);
+            border-color: var(--secondary);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .action-btn:active { transform: scale(0.95); }
+
+        .action-btn i { font-size: 0.5rem; }
+
+        .action-btn.primary { 
+            border-color: var(--secondary); 
+            color: var(--secondary);
+        }
+
+        .action-btn.primary:hover { 
+            background: rgba(42, 140, 255, 0.15);
+        }
+
+        .action-btn.danger:hover { 
+            border-color: var(--danger); 
+            color: var(--danger);
+            background: rgba(255, 74, 74, 0.1);
+        }
+
+        .action-btn.mil { 
+            border-color: var(--accent); 
+            color: var(--accent);
+        }
+
+        .action-btn.mil:hover { 
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .action-btn.success { 
+            border-color: #00E676; 
+            color: #00E676;
+        }
+
+        .action-btn.success:hover { 
+            background: rgba(0, 230, 118, 0.1);
+        }
+
+        .action-btn.pie-btn {
+            border-color: #9B59B6;
+            color: #9B59B6;
+        }
+
+        .action-btn.pie-btn:hover {
+            background: rgba(155, 89, 182, 0.15);
+        }
+
+        .action-btn.pie-btn.active {
+            border-color: #9B59B6;
+            color: #9B59B6;
+            background: rgba(155, 89, 182, 0.2);
+            box-shadow: 0 0 20px rgba(155, 89, 182, 0.2);
+        }
+
+        /* ===== LOG PANEL ===== */
+        .log-panel {
+            position: absolute;
+            bottom: 44px;
+            right: 8px;
+            width: 200px;
+            max-height: 80px;
+            overflow-y: auto;
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-size: 0.4rem;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+        }
+
+        .log-panel::-webkit-scrollbar { width: 2px; }
+        .log-panel::-webkit-scrollbar-track { background: transparent; }
+        .log-panel::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
+
+        .log-panel .log-entry { 
+            padding: 2px 0; 
+            border-bottom: 1px solid rgba(42, 140, 255, 0.05);
+            display: flex;
+            gap: 6px;
+        }
+
+        .log-panel .log-entry .time {
+            color: var(--text-secondary);
+            opacity: 0.6;
+            font-size: 0.35rem;
+        }
+
+        /* ===== MIL-STD SYMBOLS ===== */
+        .mil-symbol {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 700;
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.9);
+            position: relative;
+            font-family: 'Courier New', monospace;
+            transition: transform 0.2s;
+        }
+
+        .mil-symbol:hover { transform: scale(1.15); }
+
+        .mil-symbol::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 2px;
+            background: currentColor;
+            border-radius: 1px;
+        }
+
+        .sym-blufor { color: #2A8CFF; border-color: #2A8CFF; box-shadow: 0 0 12px rgba(42, 140, 255, 0.2); }
+        .sym-opfor { color: #FF4A4A; border-color: #FF4A4A; box-shadow: 0 0 12px rgba(255, 74, 74, 0.2); }
+        .sym-alert { color: #FFAA33; border-color: #FFAA33; animation: blink 0.8s infinite; }
+        .sym-poi { color: #AAAAAA; border-color: #AAAAAA; }
+        .sym-hvt { color: #FF0066; border-color: #FF0066; box-shadow: 0 0 12px rgba(255, 0, 102, 0.3); }
+        .sym-cp { color: #FFD700; border-color: #FFD700; box-shadow: 0 0 12px rgba(255, 215, 0, 0.2); }
+        .sym-med { color: #FF6B6B; border-color: #FF6B6B; }
+        .sym-sar { color: #FF8C00; border-color: #FF8C00; }
+        .sym-mesh { color: #00CED1; border-color: #00CED1; }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        /* ===== MODULE STYLES ===== */
+        .module-civil { border-left-color: #2A8CFF; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .panel-right { display: none; }
+            .coord-panel { right: 8px; top: 96px; left: auto; min-width: 100px; }
+            .top-bar .brand { font-size: 0.65rem; }
+            .top-bar .brand .logo { width: 22px; height: 22px; font-size: 10px; }
+            .action-btn { font-size: 0.4rem; padding: 2px 6px; min-height: 20px; }
+            .action-btn i { font-size: 0.4rem; }
+            .log-panel { width: 140px; max-height: 50px; }
+            .status-item { font-size: 0.45rem; padding: 2px 6px; }
+            .coord-panel { font-size: 0.4rem; padding: 4px 8px; }
+            .coord-panel .coord-value { font-size: 0.4rem; }
+            .bottom-bar { font-size: 0.4rem; padding: 4px 8px; }
+        }
+
+        @media (max-width: 480px) {
+            .coord-panel { font-size: 0.35rem; padding: 3px 6px; min-width: 80px; }
+            .coord-panel i { font-size: 0.35rem; }
+            .top-bar .status-item { font-size: 0.35rem; padding: 1px 4px; }
+            .top-bar .status-item .value { font-size: 0.4rem; }
+            .bottom-bar { font-size: 0.35rem; }
+            .action-bar { bottom: 36px; gap: 2px; max-width: 80%; }
+            .action-btn { font-size: 0.35rem; padding: 1px 4px; min-height: 16px; }
+            .log-panel { bottom: 36px; width: 100px; max-height: 40px; font-size: 0.3rem; }
+            .panel-right { display: none; }
+        }
+
+        /* ===== SCROLLBAR GLOBAL ===== */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 2px; }
+
+        /* ===== MAP OVERRIDES ===== */
+        .maplibregl-ctrl-group { 
+            background: var(--bg-panel) !important;
+            backdrop-filter: blur(12px) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            overflow: hidden;
+        }
+
+        .maplibregl-ctrl-group button { 
+            background: transparent !important;
+            color: var(--text-secondary) !important;
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+
+        .maplibregl-ctrl-group button:hover { 
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .maplibregl-ctrl-attrib { 
+            background: var(--bg-panel) !important;
+            backdrop-filter: blur(12px) !important;
+            border-radius: 8px !important;
+            padding: 2px 8px !important;
+            font-size: 0.4rem !important;
+            color: var(--text-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        .maplibregl-ctrl-attrib a { color: var(--secondary) !important; }
+
+        /* ===== LOADING INDICATOR ===== */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 16px;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== LOADING OVERLAY ===== -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div style="text-align:center;">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">NAVIMATOR VANGUARD v5.0</div>
+        <div class="loading-text" style="font-size:0.5rem;margin-top:4px;opacity:0.6;">MAP PUFF PIE · INITIALIZING...</div>
+    </div>
+</div>
+
+<!-- ===== MAP CONTAINER ===== -->
+<div id="map"></div>
+
+<!-- ===== HUD ===== -->
+<div class="hud-container">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="brand">
+            <div class="logo">⬡</div>
+            <span>NAVIMATOR VANGUARD</span>
+        </div>
+        <div class="version-badge" id="versionBadge">CIVIL · v5.0</div>
+        <div class="status-items">
+            <span class="status-item active" id="gpsStatusItem">
+                <i class="fas fa-satellite-dish"></i>
+                <span id="gpsStatusText">GPS</span>
+            </span>
+            <span class="status-item">
+                <i class="fas fa-shield-haltered"></i>
+                <span class="value" id="bluCount">0</span>
+            </span>
+            <span class="status-item">
+                <i class="fas fa-skull-crossbones"></i>
+                <span class="value" id="opCount">0</span>
+            </span>
+            <span class="status-item">
+                <i class="fas fa-layer-group"></i>
+                <span class="value" id="markerCount">0</span>
+            </span>
+            <span class="status-item">
+                <i class="fas fa-clock"></i>
+                <span id="timeDisplay">--:--:--</span>
+            </span>
+            <select id="langSelect" style="background:rgba(10,26,10,0.6);border:1px solid var(--border-color);color:var(--text-secondary);font-size:0.5rem;padding:2px 8px;border-radius:4px;font-family:'Segoe UI',sans-serif;cursor:pointer;font-weight:500;">
+                <option value="ru">RU</option>
+                <option value="en">EN</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- COORDINATES -->
+    <div class="coord-panel">
+        <div>
+            <i class="fas fa-globe"></i>
+            <span>MGRS:</span>
+            <span class="coord-value" id="mgrsLive">--</span>
+        </div>
+        <div>
+            <i class="fas fa-location-dot"></i>
+            <span>LAT:</span>
+            <span class="coord-value" id="latlonLive">--</span>
+        </div>
+        <div>
+            <i class="fas fa-chart-simple"></i>
+            <span>UTM:</span>
+            <span class="coord-value" id="utmLive">--</span>
+        </div>
+        <div>
+            <i class="fas fa-compass"></i>
+            <span>ZONE:</span>
+            <span class="coord-value" id="gridZone">--</span>
+        </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="panel-right" id="panelRight">
+        <div class="analysis-title">
+            <i class="fas fa-brain"></i>
+            <span id="analysisTitle">SITUATIONAL ANALYSIS</span>
+        </div>
+        <div class="threat-index" id="threatIndex">--</div>
+        <div class="threat-label" id="threatLabel">--</div>
+        <div class="stat-grid">
+            <div class="stat-item">
+                THREAT
+                <span class="value" id="threatLevel">--</span>
+            </div>
+            <div class="stat-item">
+                RATIO
+                <span class="value" id="forceRatio">--</span>
+            </div>
+            <div class="stat-item">
+                LOS
+                <span class="value" id="losValue">--</span>
+            </div>
+            <div class="stat-item">
+                ALERTS
+                <span class="value" id="alertCount">--</span>
+            </div>
+        </div>
+        <div id="recoList">
+            <div class="reco-item"><i class="fas fa-sync fa-spin"></i> LOADING...</div>
+        </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+        <div>
+            <i class="fas fa-border-all"></i>
+            <span id="gridInfo">MGRS GRID: 18S | 19S | 20S | 21S | 22S</span>
+        </div>
+        <div>
+            <i class="fas fa-satellite-dish"></i>
+            <span>GPS:</span>
+            <span class="gps-status" id="gpsStatus">INITIALIZING</span>
+        </div>
+        <div>
+            <i class="fas fa-database"></i>
+            <span id="dbStatus">MEM</span>
+        </div>
+        <div id="moduleStatus">
+            <i class="fas fa-puzzle-piece"></i>
+            <span>CIVIL</span>
+        </div>
+        <div>
+            <i class="fas fa-chart-pie"></i>
+            <span id="pieStatus">PUFF PIE</span>
+        </div>
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar" id="actionBar">
+        <button class="action-btn primary" id="placeBluforBtn">
+            <i class="fas fa-shield-haltered"></i> BLU
+        </button>
+        <button class="action-btn" id="placeOpforBtn">
+            <i class="fas fa-skull-crossbones"></i> OP
+        </button>
+        <button class="action-btn" id="placeAlertBtn">
+            <i class="fas fa-bell"></i> ALT
+        </button>
+        <button class="action-btn" id="placePoiBtn">
+            <i class="fas fa-flag"></i> POI
+        </button>
+        <button class="action-btn mil" id="placeHvtBtn">
+            <i class="fas fa-crosshairs"></i> HVT
+        </button>
+        <button class="action-btn mil" id="placeCpBtn">
+            <i class="fas fa-star"></i> CP
+        </button>
+        <button class="action-btn success" id="placeMedBtn">
+            <i class="fas fa-medkit"></i> MED
+        </button>
+        <button class="action-btn success" id="placeSarBtn">
+            <i class="fas fa-search"></i> SAR
+        </button>
+        <button class="action-btn primary" id="centerBtn">
+            <i class="fas fa-location-arrow"></i> CTR
+        </button>
+        <button class="action-btn" id="analyzeBtn">
+            <i class="fas fa-chart-simple"></i> ANZ
+        </button>
+        <button class="action-btn danger" id="clearBtn">
+            <i class="fas fa-trash-alt"></i> CLR
+        </button>
+        <button class="action-btn pie-btn" id="puffPieBtn">
+            <i class="fas fa-chart-pie"></i> PIE
+        </button>
+        <button class="action-btn" id="exportBtn">
+            <i class="fas fa-file-export"></i> EXP
+        </button>
+        <button class="action-btn" id="importBtn">
+            <i class="fas fa-file-import"></i> IMP
+        </button>
+    </div>
+
+    <!-- LOG -->
+    <div class="log-panel" id="logPanel">
+        <div class="log-entry">
+            <span class="time">[--:--:--]</span>
+            <span>NAVIMATOR VANGUARD v5.0</span>
+        </div>
+        <div class="log-entry">
+            <span class="time">[--:--:--]</span>
+            <span>MAP PUFF PIE LOADING...</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<script>
+// ================================================================
+// NAVIMATOR VANGUARD · MAP PUFF PIE v1.0
+// ================================================================
+
+// ===== CONFIGURATION =====
+const CFG = {
+    DB_NAME: 'Navimator_Cavibara_v5',
+    STORE_NAME: 'entities',
+    DEFAULT_POS: { lat: 55.7558, lng: 37.6173 },
+    MAX_LOG: 30,
+    UPDATE_INTERVAL: 3000,
+    MAX_MARKERS: 500,
+    VERSION: '5.0'
+};
+
+// ===== STATE =====
+let map, db;
+let markers = [];
+let markerObjects = [];
+let currentPos = { ...CFG.DEFAULT_POS };
+let currentVersion = 'civil';
+let currentLang = 'ru';
+let watchId = null;
+let isInitialized = false;
+let puffPieInstance = null;
+
+// ===== TRANSLATIONS =====
+const LANG = {
+    ru: {
+        threat: 'УГРОЗА',
+        stable: 'СТАБИЛЬНО',
+        critical: 'КРИТИЧНО',
+        high: 'ВЫСОКАЯ',
+        medium: 'СРЕДНЯЯ',
+        low: 'НИЗКАЯ',
+        loading: 'ЗАГРУЗКА...',
+        analysis: 'СИТУАЦИОННЫЙ АНАЛИЗ',
+        noData: 'НЕТ ДАННЫХ'
+    },
+    en: {
+        threat: 'THREAT',
+        stable: 'STABLE',
+        critical: 'CRITICAL',
+        high: 'HIGH',
+        medium: 'MEDIUM',
+        low: 'LOW',
+        loading: 'LOADING...',
+        analysis: 'SITUATIONAL ANALYSIS',
+        noData: 'NO DATA'
+    }
+};
+
+// ===== DOM HELPERS =====
+const $ = id => document.getElementById(id);
+const DOM = {
+    mgrs: $('mgrsLive'),
+    latlon: $('latlonLive'),
+    utm: $('utmLive'),
+    grid: $('gridZone'),
+    log: $('logPanel'),
+    threatIdx: $('threatIndex'),
+    threatLbl: $('threatLabel'),
+    threatLvl: $('threatLevel'),
+    forceRatio: $('forceRatio'),
+    losValue: $('losValue'),
+    alertCount: $('alertCount'),
+    markerCount: $('markerCount'),
+    bluCount: $('bluCount'),
+    opCount: $('opCount'),
+    gpsStatus: $('gpsStatus'),
+    gpsStatusText: $('gpsStatusText'),
+    timeDisplay: $('timeDisplay'),
+    dbStatus: $('dbStatus'),
+    recoList: $('recoList'),
+    versionBadge: $('versionBadge'),
+    moduleStatus: $('moduleStatus'),
+    analysisTitle: $('analysisTitle'),
+    gridInfo: $('gridInfo'),
+    loadingOverlay: $('loadingOverlay')
+};
+
+// ===== LOGGING =====
+function log(msg, isAlert = false) {
+    const entry = document.createElement('div');
+    entry.className = 'log-entry';
+    const time = new Date().toLocaleTimeString();
+    entry.innerHTML = `<span class="time">[${time}]</span><span>${msg}</span>`;
+    entry.style.color = isAlert ? '#FFB86B' : '#6A9A6A';
+    DOM.log.appendChild(entry);
+    while (DOM.log.children.length > CFG.MAX_LOG) {
+        DOM.log.removeChild(DOM.log.children[0]);
+    }
+    DOM.log.scrollTop = DOM.log.scrollHeight;
+}
+
+// ===== COORDINATES =====
+function toMGRS(lat, lon) {
+    try { return window.mgrs ? window.mgrs.forward([lon, lat]) : '--'; } 
+    catch(e) { return 'ERR'; }
+}
+
+function updateCoords(lat, lng) {
+    if (!lat || !lng) return;
+    DOM.latlon.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    DOM.mgrs.textContent = toMGRS(lat, lng);
+    try {
+        const u = window.utm.fromLatLon(lat, lng);
+        DOM.utm.textContent = `${u.zoneNum}${u.zoneLetter}`;
+        DOM.grid.textContent = `${u.zoneNum}${u.zoneLetter}`;
+    } catch(e) {
+        DOM.utm.textContent = '--';
+        DOM.grid.textContent = '--';
+    }
+}
+
+// ===== DATABASE =====
+function initDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(CFG.DB_NAME, 2);
+        req.onerror = e => { 
+            log(`DB Error: ${e.target.error}`, true); 
+            reject(e); 
+        };
+        req.onsuccess = e => { 
+            db = e.target.result; 
+            log('💾 Database connected'); 
+            resolve(db); 
+        };
+        req.onupgradeneeded = e => {
+            const dbT = e.target.result;
+            if (!dbT.objectStoreNames.contains(CFG.STORE_NAME)) {
+                const store = dbT.createObjectStore(CFG.STORE_NAME, { keyPath: 'id' });
+                store.createIndex('type', 'type');
+                store.createIndex('version', 'version');
+                store.createIndex('timestamp', 'timestamp');
+                log('📀 Database schema created');
+            }
+        };
+    });
+}
+
+async function saveEntity(data) {
+    if (!db) return;
+    try {
+        const tx = db.transaction(CFG.STORE_NAME, 'readwrite');
+        tx.objectStore(CFG.STORE_NAME).add(data);
+        await new Promise((resolve, reject) => {
+            tx.oncomplete = resolve;
+            tx.onerror = reject;
+        });
+        log(`💾 ${data.type.toUpperCase()} saved`);
+    } catch(e) {
+        log(`Save error: ${e}`, true);
+    }
+}
+
+async function loadEntities() {
+    if (!db) return [];
+    try {
+        const tx = db.transaction(CFG.STORE_NAME, 'readonly');
+        const store = tx.objectStore(CFG.STORE_NAME);
+        return await new Promise((resolve) => {
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => resolve([]);
+        });
+    } catch(e) {
+        return [];
+    }
+}
+
+async function clearDB() {
+    if (!db) return;
+    try {
+        const tx = db.transaction(CFG.STORE_NAME, 'readwrite');
+        tx.objectStore(CFG.STORE_NAME).clear();
+        await new Promise((resolve, reject) => {
+            tx.oncomplete = resolve;
+            tx.onerror = reject;
+        });
+        log('🗑️ Database cleared');
+    } catch(e) {
+        log(`Clear error: ${e}`, true);
+    }
+}
+
+// ===== EXPORT/IMPORT =====
+function exportData() {
+    const data = markers.map(m => ({ ...m }));
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `navimator_export_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    log('📤 Data exported');
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (!Array.isArray(data)) throw new Error('Invalid format');
+            
+            markerObjects.forEach(({ marker }) => marker.remove());
+            markerObjects = [];
+            markers = [];
+            await clearDB();
+            
+            for (const m of data) {
+                if (m.lat && m.lng && m.type) {
+                    await addMarker(m.lat, m.lng, m.type, m.label || '', true);
+                }
+            }
+            analyze();
+            if (puffPieInstance) puffPieInstance.setData(markers);
+            log(`📥 Imported ${data.length} entities`);
+        } catch(err) {
+            log(`Import error: ${err.message}`, true);
+        }
+    };
+    input.click();
+}
+
+// ===== MARKERS =====
+function getSymbol(type) {
+    const sym = {
+        blufor: { cls: 'sym-blufor', label: 'B', text: 'BLUFOR' },
+        opfor: { cls: 'sym-opfor', label: 'O', text: 'OPFOR' },
+        alert: { cls: 'sym-alert', label: '!', text: 'ALERT' },
+        poi: { cls: 'sym-poi', label: 'P', text: 'POI' },
+        hvt: { cls: 'sym-hvt', label: 'H', text: 'HVT' },
+        cp: { cls: 'sym-cp', label: 'C', text: 'CP' },
+        med: { cls: 'sym-med', label: 'M', text: 'MED' },
+        sar: { cls: 'sym-sar', label: 'S', text: 'SAR' },
+        mesh: { cls: 'sym-mesh', label: 'N', text: 'MESH' }
+    };
+    return sym[type] || sym.poi;
+}
+
+function createMarker(type, label = '') {
+    const sym = getSymbol(type);
+    const wrapper = document.createElement('div');
+    wrapper.style.textAlign = 'center';
+    wrapper.style.cursor = 'pointer';
+    wrapper.style.position = 'relative';
+    
+    wrapper.innerHTML = `<div class="mil-symbol ${sym.cls}">${sym.label}</div>`;
+    
+    const lbl = document.createElement('div');
+    lbl.style.cssText = `
+        background: rgba(0,0,0,0.92);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 7px;
+        color: ${sym.cls.includes('blufor') ? '#2A8CFF' : 
+                 sym.cls.includes('opfor') ? '#FF4A4A' :
+                 sym.cls.includes('alert') ? '#FFAA33' :
+                 sym.cls.includes('hvt') ? '#FF0066' :
+                 sym.cls.includes('cp') ? '#FFD700' :
+                 sym.cls.includes('med') ? '#FF6B6B' :
+                 sym.cls.includes('sar') ? '#FF8C00' :
+                 sym.cls.includes('mesh') ? '#00CED1' : '#AAAAAA'};
+        font-family: 'Segoe UI', sans-serif;
+        margin-top: -1px;
+        border: 1px solid currentColor;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        white-space: nowrap;
+    `;
+    lbl.textContent = label || sym.text;
+    wrapper.appendChild(lbl);
+    
+    return wrapper;
+}
+
+async function addMarker(lat, lng, type, customLabel = '', skipSave = false) {
+    if (markers.length >= CFG.MAX_MARKERS) {
+        log('⚠️ Max markers reached', true);
+        return null;
+    }
+    
+    const el = createMarker(type, customLabel);
+    const marker = new maplibregl.Marker({ 
+        element: el,
+        anchor: 'bottom'
+    })
+    .setLngLat([lng, lat])
+    .addTo(map);
+    
+    const data = {
+        id: `m_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+        type: type,
+        lat: lat,
+        lng: lng,
+        label: customLabel || getSymbol(type).text,
+        version: currentVersion,
+        timestamp: new Date().toISOString()
+    };
+    
+    markers.push(data);
+    markerObjects.push({ marker, data });
+    if (!skipSave) await saveEntity(data);
+    updateStats();
+    if (puffPieInstance) puffPieInstance.setData(markers);
+    log(`📍 ${data.label} @ ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+    return data;
+}
+
+// ===== STATISTICS =====
+function updateStats() {
+    const counts = {
+        total: markers.length,
+        blufor: markers.filter(m => m.type === 'blufor').length,
+        opfor: markers.filter(m => m.type === 'opfor').length,
+        alert: markers.filter(m => m.type === 'alert').length,
+        poi: markers.filter(m => m.type === 'poi').length,
+        hvt: markers.filter(m => m.type === 'hvt').length,
+        cp: markers.filter(m => m.type === 'cp').length,
+        med: markers.filter(m => m.type === 'med').length,
+        sar: markers.filter(m => m.type === 'sar').length,
+        mesh: markers.filter(m => m.type === 'mesh').length
+    };
+    DOM.markerCount.textContent = counts.total;
+    DOM.bluCount.textContent = counts.blufor;
+    DOM.opCount.textContent = counts.opfor;
+    DOM.alertCount.textContent = counts.alert;
+    return counts;
+}
+
+// ===== ANALYSIS =====
+function analyze() {
+    const c = updateStats();
+    const total = c.total;
+    
+    if (total === 0) {
+        const noData = LANG[currentLang].noData;
+        DOM.threatIdx.textContent = '--';
+        DOM.threatLbl.textContent = noData;
+        DOM.threatLvl.textContent = '--';
+        DOM.forceRatio.textContent = '--';
+        DOM.losValue.textContent = '--';
+        DOM.recoList.innerHTML = '<div class="reco-item"><i class="fas fa-info-circle"></i> No entities</div>';
+        return;
+    }
+    
+    const threatScore = Math.min(100, Math.round(
+        (c.opfor * 2.5 + c.alert * 2.0 + c.hvt * 3.0) / (c.blufor + 1) * 8
+    ));
+    const ratio = total > 0 ? (c.opfor / (c.blufor + 1)) : 1;
+    const los = Math.min(98, Math.max(30, 70 + c.blufor * 2 - c.opfor * 1.5));
+    
+    let level = 'LOW';
+    let label = LANG[currentLang].low;
+    if (threatScore > 70) { level = 'CRITICAL'; label = LANG[currentLang].critical; }
+    else if (threatScore > 45) { level = 'HIGH'; label = LANG[currentLang].high; }
+    else if (threatScore > 25) { level = 'MEDIUM'; label = LANG[currentLang].medium; }
+    
+    const color = threatScore > 70 ? '#FF4A4A' : threatScore > 45 ? '#FFAA33' : '#00E5CC';
+    DOM.threatIdx.textContent = threatScore;
+    DOM.threatIdx.style.color = color;
+    DOM.threatLbl.textContent = label;
+    DOM.threatLvl.textContent = level;
+    DOM.forceRatio.textContent = ratio.toFixed(2);
+    DOM.losValue.textContent = `${los}%`;
+    
+    const recs = [];
+    if (threatScore > 70) recs.push('🚨 CRITICAL - EVACUATE IMMEDIATELY');
+    else if (threatScore > 45) recs.push('⚠️ HIGH THREAT - REINFORCE');
+    else if (threatScore > 25) recs.push('⚡ MEDIUM - INCREASE VIGILANCE');
+    else recs.push('✅ LOW - CONTINUE OPERATIONS');
+    
+    if (ratio > 1.5) recs.push('🔴 OPFOR SUPERIORITY');
+    if (c.blufor === 0) recs.push('⚠️ NO FRIENDLY FORCES');
+    if (c.alert > 3) recs.push('🔔 MULTIPLE ALERTS');
+    if (c.hvt > 0) recs.push('🎯 HVT DETECTED');
+    if (c.med > 0) recs.push('🏥 MEDICAL ASSETS');
+    if (c.sar > 0) recs.push('🔍 SAR ACTIVE');
+    if (c.mesh > 0) recs.push('📡 MESH NETWORK');
+    if (recs.length < 3) recs.push('📡 MAINTAIN SITUATIONAL AWARENESS');
+    
+    DOM.recoList.innerHTML = recs.slice(0, 6).map(r =>
+        `<div class="reco-item"><i class="fas fa-chevron-right"></i> ${r}</div>`
+    ).join('');
+}
+
+// ===== CLEAR =====
+async function clearAll() {
+    if (!confirm('⚠️ CLEAR ALL TACTICAL DATA?')) return;
+    markerObjects.forEach(({ marker }) => marker.remove());
+    markerObjects = [];
+    markers = [];
+    await clearDB();
+    updateStats();
+    analyze();
+    if (puffPieInstance) puffPieInstance.setData(markers);
+    log('🗑️ All data cleared');
+}
+
+// ===== GPS =====
+function onGPS(pos) {
+    currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    updateCoords(currentPos.lat, currentPos.lng);
+    DOM.gpsStatus.textContent = 'ACTIVE ✓';
+    DOM.gpsStatus.className = 'gps-status active';
+    DOM.gpsStatusText.textContent = 'GPS ✓';
+    const item = document.getElementById('gpsStatusItem');
+    item.classList.add('active');
+}
+
+function onGPSError(err) {
+    DOM.gpsStatus.textContent = 'FAILBACK';
+    DOM.gpsStatus.className = 'gps-status';
+    DOM.gpsStatusText.textContent = 'GPS ✗';
+    document.getElementById('gpsStatusItem').classList.remove('active');
+    log(`⚠️ GPS: ${err.message}`, true);
+}
+
+function startGPS() {
+    if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(onGPS, onGPSError, {
+            enableHighAccuracy: true,
+            maximumAge: 10000,
+            timeout: 30000
+        });
+        log('🛰️ GPS tracking started');
+    } else {
+        DOM.gpsStatus.textContent = 'NOT SUPPORTED';
+        DOM.gpsStatusText.textContent = 'GPS ✗';
+        log('⚠️ GPS not supported', true);
+    }
+}
+
+function centerPosition() {
+    const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
+    map.flyTo({ center: [pos.lng, pos.lat], zoom: 14, duration: 800 });
+    log('🎯 Centered on position');
+}
+
+// ================================================================
+// MAP PUFF PIE CLASS
+// ================================================================
+
+class MapPuffPie {
+    constructor(map, options = {}) {
+        this.map = map;
+        this.options = {
+            radius: options.radius || 160,
+            opacity: options.opacity || 0.85,
+            position: options.position || 'bottom-right',
+            autoUpdate: options.autoUpdate !== undefined ? options.autoUpdate : true,
+            ...options
+        };
+        
+        this.markers = [];
+        this.zones = [];
+        this.container = null;
+        this.canvas = null;
+        this.ctx = null;
+        this.isVisible = true;
+        this.animationFrame = null;
+        this.particles = null;
+        this.updateInterval = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.createContainer();
+        this.setupEventListeners();
+        if (this.options.autoUpdate) {
+            this.startAutoUpdate();
+        }
+        this.render();
+        log('🥧 Puff Pie initialized');
+    }
+    
+    createContainer() {
+        this.container = document.createElement('div');
+        this.container.id = 'puff-pie-container';
+        this.container.style.cssText = `
+            position: absolute;
+            pointer-events: none;
+            z-index: 1001;
+            ${this.getPositionStyles()}
+        `;
+        
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = this.options.radius * 2;
+        this.canvas.height = this.options.radius * 2;
+        this.canvas.style.cssText = `
+            width: ${this.options.radius * 2}px;
+            height: ${this.options.radius * 2}px;
+            filter: drop-shadow(0 0 20px rgba(0, 229, 204, 0.3));
+            pointer-events: auto;
+            cursor: pointer;
+        `;
+        
+        this.container.appendChild(this.canvas);
+        document.getElementById('map').appendChild(this.container);
+        this.ctx = this.canvas.getContext('2d');
+    }
+    
+    getPositionStyles() {
+        const positions = {
+            'top-left': 'top: 100px; left: 10px;',
+            'top-right': 'top: 100px; right: 10px;',
+            'bottom-left': 'bottom: 100px; left: 10px;',
+            'bottom-right': 'bottom: 100px; right: 10px;',
+            'center': 'top: 50%; left: 50%; transform: translate(-50%, -50%);'
+        };
+        return positions[this.options.position] || positions['bottom-right'];
+    }
+    
+    setData(markers) {
+        this.markers = markers || [];
+        this.calculateZones();
+        this.render();
+    }
+    
+    calculateZones() {
+        const groups = {};
+        const types = ['blufor', 'opfor', 'alert', 'poi', 'hvt', 'cp', 'med', 'sar', 'mesh'];
+        
+        types.forEach(type => {
+            groups[type] = this.markers.filter(m => m.type === type);
+        });
+        
+        this.zones = types.map(type => ({
+            type: type,
+            count: groups[type].length,
+            color: this.getColor(type),
+            label: this.getLabel(type),
+            startAngle: 0,
+            endAngle: 0,
+            percentage: 0
+        }));
+        
+        this.zones = this.zones.filter(z => z.count > 0);
+        
+        const total = this.zones.reduce((sum, z) => sum + z.count, 0);
+        if (total > 0) {
+            let startAngle = 0;
+            this.zones.forEach((zone, index) => {
+                const percentage = zone.count / total;
+                zone.percentage = percentage;
+                zone.startAngle = startAngle;
+                zone.endAngle = startAngle + percentage * 2 * Math.PI;
+                startAngle = zone.endAngle;
+            });
+        }
+        
+        this.puffEffect();
+    }
+    
+    getColor(type) {
+        const colors = {
+            'blufor': '#2A8CFF',
+            'opfor': '#FF4A4A',
+            'alert': '#FFAA33',
+            'poi': '#AAAAAA',
+            'hvt': '#FF0066',
+            'cp': '#FFD700',
+            'med': '#FF6B6B',
+            'sar': '#FF8C00',
+            'mesh': '#00CED1'
+        };
+        return colors[type] || '#FFFFFF';
+    }
+    
+    getLabel(type) {
+        const labels = {
+            'blufor': 'BLUFOR',
+            'opfor': 'OPFOR',
+            'alert': '⚠ ALERT',
+            'poi': '📍 POI',
+            'hvt': '🎯 HVT',
+            'cp': '⭐ CP',
+            'med': '🏥 MED',
+            'sar': '🔍 SAR',
+            'mesh': '📡 MESH'
+        };
+        return labels[type] || type.toUpperCase();
+    }
+    
+    render() {
+        if (!this.ctx || !this.isVisible) return;
+        
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const radius = Math.min(w, h) / 2 - 10;
+        
+        ctx.clearRect(0, 0, w, h);
+        ctx.shadowColor = 'rgba(0, 229, 204, 0.2)';
+        ctx.shadowBlur = 30;
+        
+        if (this.zones.length === 0) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = 'rgba(10, 15, 10, 0.8)';
+            ctx.fill();
+            ctx.strokeStyle = '#1A3A1A';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            ctx.fillStyle = '#8BC88B';
+            ctx.font = '14px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('НЕТ ДАННЫХ', cx, cy);
+            return;
+        }
+        
+        this.drawPuffBackground(ctx, cx, cy, radius);
+        
+        let startAngle = 0;
+        this.zones.forEach((zone, index) => {
+            const endAngle = startAngle + zone.percentage * 2 * Math.PI;
+            
+            const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+            const color = zone.color;
+            grad.addColorStop(0, color + '44');
+            grad.addColorStop(0.5, color + '88');
+            grad.addColorStop(1, color + 'FF');
+            
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(0, 229, 204, 0.3)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            this.drawPuffBubble(ctx, cx, cy, radius, startAngle, endAngle, zone);
+            
+            startAngle = endAngle;
+        });
+        
+        // Центр
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 0.3, 0, 2 * Math.PI);
+        ctx.fillStyle = 'rgba(0, 5, 0, 0.9)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 229, 204, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        const total = this.zones.reduce((sum, z) => sum + z.count, 0);
+        ctx.fillStyle = '#00E5CC';
+        ctx.font = 'bold 22px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(total, cx, cy - 6);
+        
+        ctx.fillStyle = '#8BC88B';
+        ctx.font = '9px "Segoe UI", sans-serif';
+        ctx.fillText('ВСЕГО', cx, cy + 18);
+        
+        this.drawLegend(ctx, w, h);
+        this.drawPuffParticles(ctx, cx, cy, radius);
+    }
+    
+    drawPuffBackground(ctx, cx, cy, radius) {
+        const time = Date.now() / 2000;
+        const pulse = Math.sin(time) * 0.05 + 0.95;
+        
+        const grad = ctx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 1.5);
+        grad.addColorStop(0, 'rgba(0, 229, 204, 0)');
+        grad.addColorStop(0.5, 'rgba(0, 229, 204, 0.05)');
+        grad.addColorStop(1, 'rgba(0, 229, 204, 0)');
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius * 1.5, 0, 2 * Math.PI);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(0, 5, 0, ${0.7 * pulse})`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(0, 229, 204, ${0.2 * pulse})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+    
+    drawPuffBubble(ctx, cx, cy, radius, startAngle, endAngle, zone) {
+        const midAngle = (startAngle + endAngle) / 2;
+        const bubbleRadius = Math.min(radius * 0.12 * (zone.count / 10 + 0.5), 25);
+        const distance = radius * 0.85;
+        
+        const bx = cx + Math.cos(midAngle) * distance;
+        const by = cy + Math.sin(midAngle) * distance;
+        
+        ctx.beginPath();
+        ctx.arc(bx, by, bubbleRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = zone.color + '88';
+        ctx.fill();
+        ctx.strokeStyle = zone.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px "Courier New", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(zone.count, bx, by);
+    }
+    
+    drawPuffParticles(ctx, cx, cy, radius) {
+        if (!this.particles) {
+            this.particles = [];
+            for (let i = 0; i < 25; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const dist = Math.random() * radius * 0.8 + radius * 0.2;
+                this.particles.push({
+                    angle: angle,
+                    distance: dist,
+                    speed: 0.001 + Math.random() * 0.002,
+                    size: 1 + Math.random() * 3,
+                    alpha: 0.3 + Math.random() * 0.5
+                });
+            }
+        }
+        
+        const time = Date.now() / 1000;
+        
+        this.particles.forEach(p => {
+            p.angle += p.speed;
+            const x = cx + Math.cos(p.angle + time * 0.5) * p.distance;
+            const y = cy + Math.sin(p.angle + time * 0.5) * p.distance;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, p.size, 0, 2 * Math.PI);
+            ctx.fillStyle = `rgba(0, 229, 204, ${p.alpha * 0.3})`;
+            ctx.fill();
+        });
+    }
+    
+    drawLegend(ctx, w, h) {
+        const legendX = 10;
+        let legendY = 10;
+        const fontSize = 9;
+        const spacing = 16;
+        
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        
+        this.zones.slice(0, 6).forEach(zone => {
+            ctx.fillStyle = zone.color;
+            ctx.fillRect(legendX, legendY, 8, 8);
+            
+            ctx.fillStyle = '#8BC88B';
+            ctx.font = `${fontSize}px "Segoe UI", sans-serif`;
+            const label = `${zone.label}: ${zone.count}`;
+            ctx.fillText(label, legendX + 12, legendY - 1);
+            
+            ctx.fillStyle = '#4A7A4A';
+            ctx.font = `${fontSize - 2}px "Courier New", monospace`;
+            ctx.fillText(`${(zone.percentage * 100).toFixed(1)}%`, legendX + 85, legendY);
+            
+            legendY += spacing;
+        });
+    }
+    
+    puffEffect() {
+        const startTime = Date.now();
+        const duration = 700;
+        
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            const scale = 0.3 + 0.7 * this.easeOutElastic(progress);
+            this.canvas.style.transform = `scale(${scale})`;
+            this.canvas.style.opacity = Math.min(1, progress * 1.5);
+            
+            if (progress < 1) {
+                this.animationFrame = requestAnimationFrame(animate);
+            } else {
+                this.canvas.style.transform = 'scale(1)';
+                this.canvas.style.opacity = '1';
+            }
+        };
+        
+        animate();
+    }
+    
+    easeOutElastic(t) {
+        const c4 = (2 * Math.PI) / 3;
+        return t === 0 ? 0 : t === 1 ? 1 : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
+    }
+    
+    startAutoUpdate() {
+        this.updateInterval = setInterval(() => {
+            this.render();
+        }, 100);
+    }
+    
+    stopAutoUpdate() {
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+            this.updateInterval = null;
+        }
+        if (this.animationFrame) {
+            cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
+    }
+    
+    setupEventListeners() {
+        this.canvas.addEventListener('click', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            this.handleClick(x, y);
+        });
+        
+        this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            this.handleHover(x, y);
+        });
+    }
+    
+    handleClick(x, y) {
+        const cx = this.canvas.width / 2;
+        const cy = this.canvas.height / 2;
+        const dx = x - cx;
+        const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const radius = Math.min(this.canvas.width, this.canvas.height) / 2 - 10;
+        
+        if (dist > radius || this.zones.length === 0) return;
+        
+        const angle = Math.atan2(dy, dx) + Math.PI * 2;
+        const normalizedAngle = angle % (2 * Math.PI);
+        
+        let found = null;
+        for (const zone of this.zones) {
+            if (normalizedAngle >= zone.startAngle && normalizedAngle < zone.endAngle) {
+                found = zone;
+                break;
+            }
+        }
+        
+        if (found) {
+            this.showDetails(found);
+        }
+    }
+    
+    handleHover(x, y) {
+        const cx = this.canvas.width / 2;
+        const cy = this.canvas.height / 2;
+        const dx = x - cx;
+        const dy = y - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const radius = Math.min(this.canvas.width, this.canvas.height) / 2 - 10;
+        
+        if (dist > radius || this.zones.length === 0) {
+            this.canvas.style.cursor = 'default';
+            return;
+        }
+        
+        const angle = Math.atan2(dy, dx) + Math.PI * 2;
+        const normalizedAngle = angle % (2 * Math.PI);
+        
+        let found = null;
+        for (const zone of this.zones) {
+            if (normalizedAngle >= zone.startAngle && normalizedAngle < zone.endAngle) {
+                found = zone;
+                break;
+            }
+        }
+        
+        this.canvas.style.cursor = found ? 'pointer' : 'default';
+    }
+    
+    showDetails(zone) {
+        const markersOfType = this.markers.filter(m => m.type === zone.type);
+        
+        const popup = document.createElement('div');
+        popup.style.cssText = `
+            position: absolute;
+            background: rgba(0, 5, 0, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid ${zone.color};
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #E0F0E0;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            pointer-events: auto;
+            z-index: 1002;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+        `;
+        
+        popup.innerHTML = `
+            <h3 style="color: ${zone.color}; margin: 0 0 8px 0; font-size: 14px;">
+                ${this.getLabel(zone.type)}
+            </h3>
+            <div style="font-size: 11px; color: #8BC88B; margin-bottom: 8px;">
+                Всего: ${zone.count} объектов
+            </div>
+            ${markersOfType.slice(0, 20).map(m => `
+                <div style="padding: 3px 0; border-bottom: 1px solid #1A3A1A; font-size: 10px; color: #AAA;">
+                    ${m.label || m.type} 
+                    <span style="color: #4A7A4A; float: right;">
+                        ${m.lat.toFixed(4)}, ${m.lng.toFixed(4)}
+                    </span>
+                </div>
+            `).join('')}
+            ${markersOfType.length > 20 ? `<div style="color: #4A7A4A; font-size: 10px; text-align: center; padding: 4px;">+ ещё ${markersOfType.length - 20}</div>` : ''}
+            <div style="margin-top: 8px; font-size: 10px; color: #4A7A4A; text-align: right;">
+                ${(zone.percentage * 100).toFixed(1)}% от всех объектов
+            </div>
+        `;
+        
+        const rect = this.canvas.getBoundingClientRect();
+        const mapRect = document.getElementById('map').getBoundingClientRect();
+        let left = rect.right + 10;
+        let top = rect.top;
+        
+        if (left + 220 > mapRect.width) {
+            left = rect.left - 220;
+        }
+        if (top + 320 > mapRect.height) {
+            top = mapRect.height - 320;
+        }
+        if (top < 10) top = 10;
+        
+        popup.style.left = left + 'px';
+        popup.style.top = top + 'px';
+        
+        document.getElementById('map').appendChild(popup);
+        
+        const closeHandler = (e) => {
+            if (!popup.contains(e.target) && e.target !== this.canvas) {
+                popup.remove();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        setTimeout(() => {
+            document.addEventListener('click', closeHandler);
+        }, 100);
+    }
+    
+    show() {
+        this.isVisible = true;
+        this.container.style.display = 'block';
+        this.render();
+    }
+    
+    hide() {
+        this.isVisible = false;
+        this.container.style.display = 'none';
+    }
+    
+    toggle() {
+        if (this.isVisible) {
+            this.hide();
+        } else {
+            this.show();
+        }
+    }
+    
+    destroy() {
+        this.stopAutoUpdate();
+        if (this.container && this.container.parentNode) {
+            this.container.parentNode.removeChild(this.container);
+        }
+        this.particles = null;
+        this.zones = [];
+        this.markers = [];
+    }
+}
+
+// ================================================================
+// ИНИЦИАЛИЗАЦИЯ PUFF PIE
+// ================================================================
+
+function initPuffPie() {
+    if (!map) {
+        setTimeout(initPuffPie, 500);
+        return;
+    }
+    
+    if (puffPieInstance) {
+        puffPieInstance.destroy();
+    }
+    
+    puffPieInstance = new MapPuffPie(map, {
+        radius: 160,
+        position: 'bottom-right',
+        autoUpdate: true
+    });
+    
+    puffPieInstance.setData(markers);
+    
+    const btn = document.getElementById('puffPieBtn');
+    btn.classList.add('active');
+    btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE ✓';
+    
+    log('🥧 Map Puff Pie activated');
+}
+
+function togglePuffPie() {
+    if (!puffPieInstance) {
+        initPuffPie();
+        return;
+    }
+    
+    puffPieInstance.toggle();
+    const btn = document.getElementById('puffPieBtn');
+    
+    if (puffPieInstance.isVisible) {
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE ✓';
+        document.getElementById('pieStatus').textContent = 'PUFF PIE ✓';
+        log('🥧 Puff Pie shown');
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE';
+        document.getElementById('pieStatus').textContent = 'PUFF PIE ✗';
+        log('🥧 Puff Pie hidden');
+    }
+}
+
+// ================================================================
+// MAP & EVENTS
+// ================================================================
+
+async function initMap() {
+    map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://demotiles.maplibre.org/style.json',
+        center: [CFG.DEFAULT_POS.lng, CFG.DEFAULT_POS.lat],
+        zoom: 4,
+        attributionControl: true
+    });
+    
+    map.addControl(new maplibregl.NavigationControl({
+        showCompass: true,
+        showZoom: true
+    }), 'top-left');
+    
+    map.on('click', async (e) => {
+        const { lat, lng } = e.lngLat;
+        const types = ['blufor', 'opfor', 'alert', 'poi', 'hvt', 'cp', 'med', 'sar'];
+        const list = types.map((t, i) => `${i+1}-${t.toUpperCase()}`).join(' ');
+        const choice = prompt(`Select type: ${list}`);
+        if (choice && types[parseInt(choice) - 1]) {
+            const label = prompt('Label (optional):');
+            await addMarker(lat, lng, types[parseInt(choice) - 1], label || '');
+            analyze();
+        }
+    });
+    
+    map.on('load', async () => {
+        log('🗺️ Map loaded');
+        await initDB();
+        const saved = await loadEntities();
+        for (const m of saved) {
+            await addMarker(m.lat, m.lng, m.type, m.label, true);
+        }
+        log(`📌 ${saved.length} entities restored`);
+        updateStats();
+        analyze();
+        updateCoords(currentPos.lat, currentPos.lng);
+        setInterval(analyze, CFG.UPDATE_INTERVAL);
+        DOM.dbStatus.textContent = 'DB OK';
+        
+        if (saved.length === 0) {
+            await addMarker(55.7558, 37.6173, 'blufor', 'CP MOSCOW');
+            await addMarker(55.7620, 37.6220, 'opfor', 'OPFOR 1');
+            await addMarker(55.7480, 37.6100, 'alert', 'ALERT ZONE');
+            await addMarker(55.7720, 37.6300, 'poi', 'STRATEGIC POI');
+            await addMarker(55.7400, 37.6000, 'hvt', 'HVT-ALPHA');
+            await addMarker(55.7800, 37.6400, 'med', 'FIELD HOSPITAL');
+            await addMarker(55.7300, 37.5900, 'sar', 'SAR TEAM');
+            await addMarker(55.7500, 37.6250, 'cp', 'TACTICAL CP');
+            analyze();
+        }
+        
+        // Инициализируем Puff Pie
+        initPuffPie();
+        
+        isInitialized = true;
+        DOM.loadingOverlay.classList.add('hidden');
+        log('✅ System operational');
+    });
+    
+    map.on('move', () => {
+        const c = map.getCenter();
+        updateCoords(c.lat, c.lng);
+    });
+}
+
+function bindEvents() {
+    const actions = {
+        placeBluforBtn: 'blufor',
+        placeOpforBtn: 'opfor',
+        placeAlertBtn: 'alert',
+        placePoiBtn: 'poi',
+        placeHvtBtn: 'hvt',
+        placeCpBtn: 'cp',
+        placeMedBtn: 'med',
+        placeSarBtn: 'sar'
+    };
+    
+    Object.entries(actions).forEach(([id, type]) => {
+        document.getElementById(id).onclick = () => {
+            const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
+            const offset = (Math.random() - 0.5) * 0.002;
+            const label = prompt('Label (optional):');
+            addMarker(pos.lat + offset, pos.lng + offset, type, label || '');
+            analyze();
+        };
+    });
+    
+    document.getElementById('centerBtn').onclick = centerPosition;
+    document.getElementById('analyzeBtn').onclick = analyze;
+    document.getElementById('clearBtn').onclick = clearAll;
+    document.getElementById('exportBtn').onclick = exportData;
+    document.getElementById('importBtn').onclick = importData;
+    document.getElementById('puffPieBtn').onclick = togglePuffPie;
+    
+    document.getElementById('langSelect').onchange = function() {
+        currentLang = this.value;
+        log(`🌐 Language: ${this.value.toUpperCase()}`);
+        analyze();
+    };
+    
+    setInterval(() => {
+        DOM.timeDisplay.textContent = new Date().toLocaleTimeString('ru-RU', { 
+            hour12: false,
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }, 1000);
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'c' || e.key === 'C') centerPosition();
+        if (e.key === 'a' || e.key === 'A') analyze();
+        if (e.key === 'Delete' || e.key === 'Backspace') clearAll();
+        if (e.key === 'p' || e.key === 'P') togglePuffPie();
+        if (e.key === 'b' || e.key === 'B') {
+            const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
+            const offset = (Math.random() - 0.5) * 0.002;
+            addMarker(pos.lat + offset, pos.lng + offset, 'blufor');
+            analyze();
+        }
+        if (e.key === 'o' || e.key === 'O') {
+            const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
+            const offset = (Math.random() - 0.5) * 0.002;
+            addMarker(pos.lat + offset, pos.lng + offset, 'opfor');
+            analyze();
+        }
+    });
+}
+
+// ================================================================
+// START
+// ================================================================
+
+window.onload = async () => {
+    log('⬛ NAVIMATOR VANGUARD v5.0');
+    log('🔷 CAVIBARA CARTOGRAFA');
+    log('🥧 MAP PUFF PIE MODULE');
+    log('🧩 PRODUCTION GRADE');
+    
+    await initMap();
+    startGPS();
+    bindEvents();
+};
+
+</script>
+</body>
+</html>
