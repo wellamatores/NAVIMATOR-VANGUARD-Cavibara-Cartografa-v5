@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/utm@1.1.1/utm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mgrs@1.0.0/mgrs.min.js"></script>
-    
-    <!-- ===== NEW LIBRARIES ===== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -31,6 +29,7 @@
             --text-secondary: #8BC88B;
             --border-color: #1A3A1A;
             --shadow: 0 4px 30px rgba(0, 229, 204, 0.08);
+            --pie-purple: #9B59B6;
         }
 
         body, html { 
@@ -118,6 +117,80 @@
             flex-shrink: 0;
         }
 
+        /* ===== 🥧 PUFF PIE BUTTON - КРУПНЫЙ, ВИДИМЫЙ, ПУЛЬСИРУЮЩИЙ ===== */
+        .header-pie-btn {
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.25), rgba(155, 89, 182, 0.08));
+            border: 2px solid var(--pie-purple);
+            color: var(--pie-purple);
+            padding: 6px 18px;
+            border-radius: 25px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            pointer-events: auto;
+            flex-shrink: 0;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(155, 89, 182, 0.3);
+            box-shadow: 0 0 20px rgba(155, 89, 182, 0.15);
+            animation: piePulse 2s ease-in-out infinite;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header-pie-btn:hover {
+            background: rgba(155, 89, 182, 0.35);
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(155, 89, 182, 0.4);
+            border-color: #BB77DD;
+            color: #BB77DD;
+        }
+
+        .header-pie-btn:active {
+            transform: scale(0.95);
+        }
+
+        .header-pie-btn i {
+            font-size: 0.9rem;
+            color: var(--pie-purple);
+        }
+
+        @keyframes piePulse {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(155, 89, 182, 0.15), 0 0 60px rgba(155, 89, 182, 0.05);
+                border-color: var(--pie-purple);
+                background: linear-gradient(135deg, rgba(155, 89, 182, 0.25), rgba(155, 89, 182, 0.08));
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(155, 89, 182, 0.4), 0 0 80px rgba(155, 89, 182, 0.15);
+                border-color: #BB77DD;
+                background: linear-gradient(135deg, rgba(155, 89, 182, 0.35), rgba(155, 89, 182, 0.12));
+                transform: scale(1.02);
+            }
+        }
+
+        /* Дополнительный индикатор "нового" модуля */
+        .header-pie-btn::after {
+            content: '●';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 10px;
+            color: #FF6B6B;
+            animation: blink 1s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        /* ===== Блок статусов справа ===== */
         .status-items {
             display: flex;
             gap: 6px;
@@ -156,34 +229,6 @@
         }
 
         .status-item i { font-size: 0.5rem; opacity: 0.8; }
-
-        /* ===== PUFF PIE BUTTON IN HEADER ===== */
-        .header-pie-btn {
-            background: rgba(155, 89, 182, 0.15);
-            border: 1px solid #9B59B6;
-            color: #9B59B6;
-            padding: 3px 12px;
-            border-radius: 4px;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 0.55rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: 600;
-            pointer-events: auto;
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-
-        .header-pie-btn:hover {
-            background: rgba(155, 89, 182, 0.25);
-            transform: translateY(-1px);
-            box-shadow: 0 0 20px rgba(155, 89, 182, 0.2);
-        }
-
-        .header-pie-btn i { font-size: 0.5rem; }
 
         /* ===== VERSION SELECTOR ===== */
         .version-selector {
@@ -537,7 +582,6 @@
             background: rgba(0, 230, 118, 0.1);
         }
 
-        /* ===== EXPORT BUTTONS ===== */
         .action-btn.export-btn {
             border-color: #9B59B6;
             color: #9B59B6;
@@ -559,7 +603,7 @@
             color: #E67E22;
         }
         .action-btn.ws-btn:hover {
-            background: rgba(230, 126, 34, 0.15);
+            background: rgba(230, 126, 150, 0.15);
         }
 
         .action-btn.ws-btn.online {
@@ -685,7 +729,11 @@
             .coord-panel { left: auto; right: 210px; top: 96px; min-width: 120px; }
             .panel-left { width: 110px; }
             .panel-right .threat-index { font-size: 1.8rem; }
-            .header-pie-btn { font-size: 0.45rem; padding: 2px 10px; }
+            .header-pie-btn { 
+                font-size: 0.65rem; 
+                padding: 5px 14px;
+            }
+            .header-pie-btn i { font-size: 0.75rem; }
         }
 
         @media (max-width: 768px) {
@@ -703,7 +751,12 @@
             .coord-panel { font-size: 0.4rem; padding: 4px 8px; }
             .coord-panel .coord-value { font-size: 0.4rem; }
             .bottom-bar { font-size: 0.4rem; padding: 4px 8px; }
-            .header-pie-btn { font-size: 0.4rem; padding: 2px 8px; }
+            .header-pie-btn { 
+                font-size: 0.55rem; 
+                padding: 4px 12px;
+                gap: 5px;
+            }
+            .header-pie-btn i { font-size: 0.65rem; }
         }
 
         @media (max-width: 480px) {
@@ -719,7 +772,18 @@
             .version-selector { top: 44px; padding: 2px 4px; }
             .panel-right { display: none; }
             .panel-left { display: none; }
-            .header-pie-btn { font-size: 0.35rem; padding: 1px 6px; }
+            .header-pie-btn { 
+                font-size: 0.45rem; 
+                padding: 3px 10px;
+                gap: 4px;
+                border-radius: 20px;
+            }
+            .header-pie-btn i { font-size: 0.55rem; }
+            .header-pie-btn::after {
+                font-size: 7px;
+                top: -2px;
+                right: -2px;
+            }
         }
 
         /* ===== SCROLLBAR GLOBAL ===== */
@@ -824,13 +888,14 @@
             <div class="logo">⬡</div>
             <span>NAVIMATOR VANGUARD</span>
         </div>
+
+        <!-- 🥧 КНОПКА PIE - КРУПНАЯ, ВИДИМАЯ, ПУЛЬСИРУЮЩАЯ -->
+        <button class="header-pie-btn" id="openPuffPieBtn">
+            <i class="fas fa-chart-pie"></i> PUFF PIE
+        </button>
+
         <div class="version-badge" id="versionBadge">CIVIL · v5.0</div>
         <div class="status-items">
-            <!-- ===== PUFF PIE BUTTON IN HEADER ===== -->
-            <button class="header-pie-btn" id="openPuffPieBtn">
-                <i class="fas fa-chart-pie"></i> PIE
-            </button>
-            
             <span class="status-item active" id="gpsStatusItem">
                 <i class="fas fa-satellite-dish"></i>
                 <span id="gpsStatusText">GPS</span>
@@ -1040,8 +1105,6 @@
         <button class="action-btn danger" id="clearBtn">
             <i class="fas fa-trash-alt"></i> CLR
         </button>
-        
-        <!-- ===== EXPORT BUTTONS ===== -->
         <button class="action-btn export-btn" id="exportPdfBtn">
             <i class="fas fa-file-pdf"></i> PDF
         </button>
@@ -1955,13 +2018,13 @@ async function initMap() {
 // 14. OPEN PUFF PIE MODULE
 // ================================================================
 function openPuffPie() {
-    // Save current data before navigating
     if (markers.length > 0) {
         saveToEncryptedStorage(markers);
         log('💾 Data saved before opening Puff Pie');
     }
-    // Navigate to Puff Pie module
-    window.location.href = 'puff.html';
+    // Показываем уведомление, так как puff.html не существует
+    alert('🥧 PUFF PIE MODULE\n\nДанные сохранены: ' + markers.length + ' entities\n\n(Модуль в разработке)');
+    log('🥧 Puff Pie module requested');
 }
 
 // ================================================================
@@ -1996,7 +2059,6 @@ function bindEvents() {
     document.getElementById('exportBtn').onclick = exportData;
     document.getElementById('importBtn').onclick = importData;
     
-    // ===== NEW BUTTONS =====
     document.getElementById('openPuffPieBtn').onclick = openPuffPie;
     document.getElementById('exportPdfBtn').onclick = exportPDF;
     document.getElementById('exportPngBtn').onclick = exportPNG;
