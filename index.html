@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/utm@1.1.1/utm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mgrs@1.0.0/mgrs.min.js"></script>
     
-    <!-- ===== НОВЫЕ БИБЛИОТЕКИ ===== -->
+    <!-- ===== NEW LIBRARIES ===== -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
@@ -438,7 +438,7 @@
             gap: 4px;
             flex-wrap: wrap;
             pointer-events: auto;
-            max-width: 70%;
+            max-width: 75%;
         }
 
         .action-btn {
@@ -501,6 +501,46 @@
 
         .action-btn.success:hover { 
             background: rgba(0, 230, 118, 0.1);
+        }
+
+        /* ===== PUFF PIE BUTTON ===== */
+        .action-btn.pie-btn {
+            border-color: #9B59B6;
+            color: #9B59B6;
+        }
+
+        .action-btn.pie-btn:hover {
+            background: rgba(155, 89, 182, 0.15);
+        }
+
+        /* ===== EXPORT BUTTONS ===== */
+        .action-btn.export-btn {
+            border-color: #9B59B6;
+            color: #9B59B6;
+        }
+        .action-btn.export-btn:hover {
+            background: rgba(155, 89, 182, 0.15);
+        }
+
+        .action-btn.encrypt-btn {
+            border-color: #1ABC9C;
+            color: #1ABC9C;
+        }
+        .action-btn.encrypt-btn:hover {
+            background: rgba(26, 188, 156, 0.15);
+        }
+
+        .action-btn.ws-btn {
+            border-color: #E67E22;
+            color: #E67E22;
+        }
+        .action-btn.ws-btn:hover {
+            background: rgba(230, 126, 34, 0.15);
+        }
+
+        .action-btn.ws-btn.online {
+            border-color: #2ECC71;
+            color: #2ECC71;
         }
 
         /* ===== LOG PANEL ===== */
@@ -729,36 +769,6 @@
             font-family: 'Courier New', monospace;
             letter-spacing: 2px;
         }
-
-        /* ===== НОВЫЙ СТИЛЬ ДЛЯ КНОПОК ЭКСПОРТА ===== */
-        .action-btn.export-btn {
-            border-color: #9B59B6;
-            color: #9B59B6;
-        }
-        .action-btn.export-btn:hover {
-            background: rgba(155, 89, 182, 0.15);
-        }
-
-        .action-btn.encrypt-btn {
-            border-color: #1ABC9C;
-            color: #1ABC9C;
-        }
-        .action-btn.encrypt-btn:hover {
-            background: rgba(26, 188, 156, 0.15);
-        }
-
-        .action-btn.ws-btn {
-            border-color: #E67E22;
-            color: #E67E22;
-        }
-        .action-btn.ws-btn:hover {
-            background: rgba(230, 126, 34, 0.15);
-        }
-
-        .action-btn.ws-btn.online {
-            border-color: #2ECC71;
-            color: #2ECC71;
-        }
     </style>
 </head>
 <body>
@@ -814,8 +824,8 @@
                 <span id="wsStatusText">WS: OFF</span>
             </span>
             <select id="langSelect" style="background:rgba(10,26,10,0.6);border:1px solid var(--border-color);color:var(--text-secondary);font-size:0.5rem;padding:2px 8px;border-radius:4px;font-family:'Segoe UI',sans-serif;cursor:pointer;font-weight:500;">
-                <option value="ru">RU</option>
                 <option value="en">EN</option>
+                <option value="ru">RU</option>
             </select>
         </div>
     </div>
@@ -999,7 +1009,12 @@
             <i class="fas fa-trash-alt"></i> CLR
         </button>
         
-        <!-- ===== НОВЫЕ КНОПКИ ===== -->
+        <!-- ===== PUFF PIE BUTTON ===== -->
+        <button class="action-btn pie-btn" id="openPuffPieBtn">
+            <i class="fas fa-chart-pie"></i> PIE
+        </button>
+        
+        <!-- ===== EXPORT BUTTONS ===== -->
         <button class="action-btn export-btn" id="exportPdfBtn">
             <i class="fas fa-file-pdf"></i> PDF
         </button>
@@ -1038,11 +1053,12 @@
 <script>
 // ================================================================
 // NAVIMATOR VANGUARD · CAVIBARA CARTOGRAFA v5.0
-// С ДОБАВЛЕННЫМИ ФУНКЦИЯМИ:
-// - Экспорт PDF/PNG
-// - Шифрование AES-GCM
+// WITH ADDED FUNCTIONS:
+// - PDF/PNG Export
+// - AES-GCM Encryption
 // - WebSocket
 // - Drag & Drop
+// - PUFF PIE Module Link
 // ================================================================
 
 // ===== CONFIGURATION =====
@@ -1060,31 +1076,31 @@ const CFG = {
 const VERSIONS = {
     'civil': {
         name: 'CIVIL',
-        label: '🏕️ Гражданская',
-        desc: 'Базовая навигация',
+        label: '🏕️ Civil',
+        desc: 'Basic Navigation',
         color: '#2A8CFF',
         modules: ['base'],
         features: ['offline_maps', 'basic_nav', 'poi']
     },
     'civil-pro': {
         name: 'CIVIL PRO',
-        label: '🚀 Профессиональная',
-        desc: 'Расширенная геопространственная',
+        label: '🚀 Professional',
+        desc: 'Advanced Geospatial',
         color: '#00E5CC',
         modules: ['base', 'pro'],
         features: ['3d_terrain', 'slopes', 'overlays']
     },
     'service': {
         name: 'SERVICE',
-        label: '🚑 Службы',
-        desc: 'МЧС, SAR, геологи',
+        label: '🚑 Service',
+        desc: 'EMS, SAR, Geology',
         color: '#FF8C00',
         modules: ['base', 'pro', 'service'],
         features: ['blue_force_tracking', 'hazards', 'mesh_networks']
     },
     'military': {
         name: 'MILITARY',
-        label: '⚔️ Военная',
+        label: '⚔️ Military',
         desc: 'Tactical Entry',
         color: '#FF4A4A',
         modules: ['base', 'pro', 'service', 'military'],
@@ -1092,8 +1108,8 @@ const VERSIONS = {
     },
     'military-pro': {
         name: 'MIL-PRO',
-        label: '💀 Командная',
-        desc: 'Полный ATAK',
+        label: '💀 Command',
+        desc: 'Full ATAK',
         color: '#FFD700',
         modules: ['base', 'pro', 'service', 'military', 'command'],
         features: ['full_nato', 'mission_planning', 'drone_integration']
@@ -1106,11 +1122,11 @@ let markers = [];
 let markerObjects = [];
 let currentPos = { ...CFG.DEFAULT_POS };
 let currentVersion = 'civil';
-let currentLang = 'ru';
+let currentLang = 'en';
 let watchId = null;
 let isInitialized = false;
 
-// ===== НОВЫЕ СОСТОЯНИЯ =====
+// ===== NEW STATES =====
 let encryptionEnabled = true;
 let wsConnected = false;
 let wsClient = null;
@@ -1119,17 +1135,6 @@ const ENCRYPTION_SALT = 'cavibara_cartografa_salt';
 
 // ===== TRANSLATIONS =====
 const LANG = {
-    ru: {
-        threat: 'УГРОЗА',
-        stable: 'СТАБИЛЬНО',
-        critical: 'КРИТИЧНО',
-        high: 'ВЫСОКАЯ',
-        medium: 'СРЕДНЯЯ',
-        low: 'НИЗКАЯ',
-        loading: 'ЗАГРУЗКА...',
-        analysis: 'СИТУАЦИОННЫЙ АНАЛИЗ',
-        noData: 'НЕТ ДАННЫХ'
-    },
     en: {
         threat: 'THREAT',
         stable: 'STABLE',
@@ -1140,11 +1145,22 @@ const LANG = {
         loading: 'LOADING...',
         analysis: 'SITUATIONAL ANALYSIS',
         noData: 'NO DATA'
+    },
+    ru: {
+        threat: 'УГРОЗА',
+        stable: 'СТАБИЛЬНО',
+        critical: 'КРИТИЧНО',
+        high: 'ВЫСОКАЯ',
+        medium: 'СРЕДНЯЯ',
+        low: 'НИЗКАЯ',
+        loading: 'ЗАГРУЗКА...',
+        analysis: 'СИТУАЦИОННЫЙ АНАЛИЗ',
+        noData: 'НЕТ ДАННЫХ'
     }
 };
 
 // ================================================================
-// 1. КРИПТОГРАФИЯ (AES-GCM + PBKDF2)
+// 1. CRYPTOGRAPHY (AES-GCM + PBKDF2)
 // ================================================================
 const CryptoUtils = {
     async deriveKey(password, salt) {
@@ -1202,7 +1218,7 @@ const CryptoUtils = {
 };
 
 // ================================================================
-// 2. ЭКСПОРТ PDF/PNG (html2canvas + jsPDF)
+// 2. EXPORT PDF/PNG (html2canvas + jsPDF)
 // ================================================================
 async function captureMapCanvas() {
     const mapElement = document.getElementById('map');
@@ -1233,7 +1249,6 @@ async function exportPDF() {
         const h = (canvas.height / canvas.width) * w;
         pdf.addImage(imgData, 'PNG', 0, 0, w, h);
         
-        // Add metadata
         pdf.setFontSize(8);
         pdf.setTextColor(100, 200, 100);
         const date = new Date().toLocaleString();
@@ -1278,7 +1293,6 @@ function connectWebSocket() {
             document.getElementById('wsToggleBtn').classList.add('online');
             document.getElementById('wsToggleBtn').innerHTML = '<i class="fas fa-plug"></i> WS ✓';
             log('🌐 WebSocket connected');
-            // Send initial sync
             sendWSSync();
         };
         
@@ -1286,14 +1300,9 @@ function connectWebSocket() {
             try {
                 const msg = JSON.parse(evt.data);
                 if (msg.type === 'sync') {
-                    // Receive sync from server
                     if (msg.data && msg.data.markers) {
-                        // Merge data (simplified)
                         log(`📡 WS sync: ${msg.data.markers.length} entities`);
                     }
-                }
-                if (msg.type === 'echo') {
-                    // Echo from server
                 }
             } catch (e) {}
         };
@@ -1305,13 +1314,10 @@ function connectWebSocket() {
             document.getElementById('wsToggleBtn').classList.remove('online');
             document.getElementById('wsToggleBtn').innerHTML = '<i class="fas fa-plug"></i> WS';
             log('🌐 WebSocket disconnected');
-            // Reconnect after 5s
             setTimeout(connectWebSocket, 5000);
         };
         
-        wsClient.onerror = () => {
-            // handled by onclose
-        };
+        wsClient.onerror = () => {};
     } catch (e) {
         log(`WebSocket error: ${e.message}`, true);
         setTimeout(connectWebSocket, 5000);
@@ -1333,7 +1339,7 @@ function sendWSSync() {
 }
 
 // ================================================================
-// 4. DOM HELPERS (оригинальные)
+// 4. DOM HELPERS
 // ================================================================
 const $ = id => document.getElementById(id);
 const DOM = {
@@ -1399,7 +1405,7 @@ function updateCoords(lat, lng) {
 }
 
 // ================================================================
-// 5. DATABASE (оригинальный)
+// 5. DATABASE
 // ================================================================
 function initDB() {
     return new Promise((resolve, reject) => {
@@ -1427,7 +1433,7 @@ function initDB() {
 }
 
 // ================================================================
-// 6. СОХРАНЕНИЕ С ШИФРОВАНИЕМ
+// 6. ENCRYPTED STORAGE
 // ================================================================
 async function saveToEncryptedStorage(data) {
     try {
@@ -1473,7 +1479,6 @@ async function saveEntity(data) {
             tx.oncomplete = resolve;
             tx.onerror = reject;
         });
-        // Also save to encrypted localStorage
         await saveToEncryptedStorage(markers);
         log(`💾 ${data.type.toUpperCase()} saved`);
     } catch(e) {
@@ -1513,7 +1518,7 @@ async function clearDB() {
 }
 
 // ================================================================
-// 7. MARKERS (оригинальные + drag&drop)
+// 7. MARKERS + DRAG & DROP
 // ================================================================
 function getSymbol(type) {
     const sym = {
@@ -1564,7 +1569,6 @@ function createMarker(type, label = '') {
     lbl.textContent = label || sym.text;
     wrapper.appendChild(lbl);
     
-    // Drag events
     wrapper.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', type);
         e.dataTransfer.effectAllowed = 'move';
@@ -1606,7 +1610,6 @@ async function addMarker(lat, lng, type, customLabel = '', skipSave = false) {
     return data;
 }
 
-// ===== DRAG & DROP для маркеров =====
 function setupDragDrop() {
     const mapContainer = document.getElementById('map');
     
@@ -1623,8 +1626,6 @@ function setupDragDrop() {
         const rect = mapContainer.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-        
-        // Convert pixel to lat/lng
         const coords = map.unproject([x, y]);
         await addMarker(coords.lat, coords.lng, type);
         analyze();
@@ -1632,7 +1633,7 @@ function setupDragDrop() {
 }
 
 // ================================================================
-// 8. STATISTICS & ANALYSIS (оригинальные)
+// 8. STATISTICS & ANALYSIS
 // ================================================================
 function updateStats() {
     const counts = {
@@ -1710,7 +1711,7 @@ function analyze() {
 }
 
 // ================================================================
-// 9. FILTERS (оригинальные)
+// 9. FILTERS
 // ================================================================
 function applyFilters() {
     const filters = {
@@ -1731,7 +1732,7 @@ function applyFilters() {
 }
 
 // ================================================================
-// 10. CLEAR (оригинальный)
+// 10. CLEAR
 // ================================================================
 async function clearAll() {
     if (!confirm('⚠️ CLEAR ALL TACTICAL DATA?')) return;
@@ -1745,7 +1746,7 @@ async function clearAll() {
 }
 
 // ================================================================
-// 11. GPS (оригинальный)
+// 11. GPS
 // ================================================================
 function onGPS(pos) {
     currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
@@ -1787,7 +1788,7 @@ function centerPosition() {
 }
 
 // ================================================================
-// 12. VERSION SWITCH (оригинальный)
+// 12. VERSION SWITCH
 // ================================================================
 function switchVersion(version) {
     currentVersion = version;
@@ -1807,7 +1808,6 @@ function switchVersion(version) {
     
     const isMil = version === 'military' || version === 'military-pro';
     const isService = version === 'service' || isMil;
-    const isPro = version === 'civil-pro' || version === 'service' || isMil;
     
     document.querySelectorAll('.action-btn').forEach(btn => {
         const id = btn.id;
@@ -1842,7 +1842,7 @@ function switchVersion(version) {
 }
 
 // ================================================================
-// 13. MAP (оригинальный + загрузка сохранённых данных)
+// 13. MAP
 // ================================================================
 async function initMap() {
     map = new maplibregl.Map({
@@ -1858,7 +1858,6 @@ async function initMap() {
         showZoom: true
     }), 'top-left');
     
-    // Click to add marker
     map.on('click', async (e) => {
         const { lat, lng } = e.lngLat;
         const types = ['blufor', 'opfor', 'alert', 'poi'];
@@ -1879,7 +1878,6 @@ async function initMap() {
         log('🗺️ Map loaded');
         await initDB();
         
-        // Try to load encrypted data
         const encryptedData = await loadFromEncryptedStorage();
         if (encryptedData && encryptedData.length > 0) {
             for (const m of encryptedData) {
@@ -1887,7 +1885,6 @@ async function initMap() {
             }
             log(`🔓 Loaded ${encryptedData.length} encrypted entities`);
         } else {
-            // Load from IndexedDB
             const saved = await loadEntities();
             for (const m of saved) {
                 await addMarker(m.lat, m.lng, m.type, m.label, true);
@@ -1901,7 +1898,6 @@ async function initMap() {
         setInterval(analyze, CFG.UPDATE_INTERVAL);
         DOM.dbStatus.textContent = 'DB OK';
         
-        // Demo data if empty
         if (markers.length === 0) {
             await addMarker(55.7558, 37.6173, 'blufor', 'CP MOSCOW');
             await addMarker(55.7620, 37.6220, 'opfor', 'OPFOR 1');
@@ -1919,8 +1915,6 @@ async function initMap() {
         isInitialized = true;
         DOM.loadingOverlay.classList.add('hidden');
         log('✅ System operational');
-        
-        // Connect WebSocket
         connectWebSocket();
     });
     
@@ -1931,10 +1925,22 @@ async function initMap() {
 }
 
 // ================================================================
-// 14. EVENTS (оригинальные + новые)
+// 14. OPEN PUFF PIE MODULE
+// ================================================================
+function openPuffPie() {
+    // Save current data before navigating
+    if (markers.length > 0) {
+        saveToEncryptedStorage(markers);
+        log('💾 Data saved before opening Puff Pie');
+    }
+    // Navigate to Puff Pie module
+    window.location.href = 'puff.html';
+}
+
+// ================================================================
+// 15. EVENTS
 // ================================================================
 function bindEvents() {
-    // Action buttons (оригинальные)
     const actions = {
         placeBluforBtn: 'blufor',
         placeOpforBtn: 'opfor',
@@ -1963,11 +1969,11 @@ function bindEvents() {
     document.getElementById('exportBtn').onclick = exportData;
     document.getElementById('importBtn').onclick = importData;
     
-    // ===== НОВЫЕ КНОПКИ =====
+    // ===== NEW BUTTONS =====
+    document.getElementById('openPuffPieBtn').onclick = openPuffPie;
     document.getElementById('exportPdfBtn').onclick = exportPDF;
     document.getElementById('exportPngBtn').onclick = exportPNG;
     
-    // Encryption toggle
     document.getElementById('encryptToggleBtn').onclick = function() {
         encryptionEnabled = !encryptionEnabled;
         this.innerHTML = encryptionEnabled ? '<i class="fas fa-lock"></i> ENC' : '<i class="fas fa-lock-open"></i> ENC';
@@ -1975,11 +1981,9 @@ function bindEvents() {
         this.style.color = encryptionEnabled ? '#1ABC9C' : '#E74C3C';
         document.getElementById('encryptStatus').textContent = encryptionEnabled ? '🔒 AES-256' : '🔓 PLAIN';
         log(`🔐 Encryption ${encryptionEnabled ? 'enabled' : 'disabled'}`);
-        // Re-save with new setting
         saveToEncryptedStorage(markers);
     };
     
-    // WebSocket toggle
     document.getElementById('wsToggleBtn').onclick = function() {
         if (wsConnected) {
             if (wsClient) wsClient.close();
@@ -1992,26 +1996,22 @@ function bindEvents() {
         }
     };
     
-    // Filters
     document.querySelectorAll('.layer-item input').forEach(el => {
         el.addEventListener('change', applyFilters);
     });
     
-    // Version buttons
     document.querySelectorAll('.version-btn').forEach(btn => {
         btn.onclick = () => switchVersion(btn.dataset.version);
     });
     
-    // Language
     document.getElementById('langSelect').onchange = function() {
         currentLang = this.value;
         log(`🌐 Language: ${this.value.toUpperCase()}`);
         analyze();
     };
     
-    // Clock
     setInterval(() => {
-        DOM.timeDisplay.textContent = new Date().toLocaleTimeString('ru-RU', { 
+        DOM.timeDisplay.textContent = new Date().toLocaleTimeString('en-US', { 
             hour12: false,
             hour: '2-digit',
             minute: '2-digit',
@@ -2019,13 +2019,13 @@ function bindEvents() {
         });
     }, 1000);
     
-    // Keyboard shortcuts (оригинальные + новые)
     document.addEventListener('keydown', (e) => {
         if (e.key === 'c' || e.key === 'C') centerPosition();
         if (e.key === 'a' || e.key === 'A') analyze();
         if (e.key === 'Delete' || e.key === 'Backspace') clearAll();
         if (e.key === 'p' || e.key === 'P') exportPDF();
         if (e.key === 'i' || e.key === 'I') exportPNG();
+        if (e.key === 'f' || e.key === 'F') openPuffPie();
         if (e.key === 'b' || e.key === 'B') {
             const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
             const offset = (Math.random() - 0.5) * 0.002;
@@ -2042,7 +2042,7 @@ function bindEvents() {
 }
 
 // ================================================================
-// 15. EXPORT/IMPORT (оригинальные)
+// 16. EXPORT/IMPORT
 // ================================================================
 function exportData() {
     const data = markers.map(m => ({ ...m }));
@@ -2090,7 +2090,7 @@ function importData() {
 }
 
 // ================================================================
-// 16. START
+// 17. START
 // ================================================================
 window.onload = async () => {
     log('⬛ NAVIMATOR VANGUARD v5.0');
@@ -2099,6 +2099,7 @@ window.onload = async () => {
     log('🔐 AES-256 ENCRYPTION');
     log('🌐 WebSocket READY');
     log('📄 PDF/PNG EXPORT');
+    log('🥧 PUFF PIE MODULE');
     
     await initMap();
     startGPS();
@@ -2106,7 +2107,6 @@ window.onload = async () => {
     bindEvents();
     switchVersion('civil');
     
-    // Save encrypted data periodically
     setInterval(() => {
         if (markers.length > 0) {
             saveToEncryptedStorage(markers);
