@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>NAVIMATOR VANGUARD · MAP PUFF PIE</title>
+    <title>NAVIMATOR · MAP PUFF PIE</title>
     <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/utm@1.1.1/utm.min.js"></script>
@@ -11,7 +11,8 @@
     
     <style>
         /* ================================================================
-           NAVIMATOR VANGUARD v5.0 · MAP PUFF PIE
+           NAVIMATOR · MAP PUFF PIE v2.0
+           ПОЛНАЯ ВЕРСИЯ С ИНТЕГРАЦИЕЙ С ЯДРОМ
            ================================================================ */
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -99,6 +100,31 @@
             font-size: 14px;
             color: #000;
         }
+
+        /* ===== BACK BUTTON ===== */
+        .back-btn {
+            background: rgba(42, 140, 255, 0.15);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 4px 14px;
+            border-radius: 4px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            pointer-events: auto;
+        }
+
+        .back-btn:hover {
+            background: rgba(42, 140, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .back-btn i { font-size: 0.5rem; }
 
         .version-badge {
             background: rgba(0, 229, 204, 0.12);
@@ -478,9 +504,6 @@
             50% { opacity: 0.2; }
         }
 
-        /* ===== MODULE STYLES ===== */
-        .module-civil { border-left-color: #2A8CFF; }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .panel-right { display: none; }
@@ -494,6 +517,7 @@
             .coord-panel { font-size: 0.4rem; padding: 4px 8px; }
             .coord-panel .coord-value { font-size: 0.4rem; }
             .bottom-bar { font-size: 0.4rem; padding: 4px 8px; }
+            .back-btn { font-size: 0.45rem; padding: 3px 10px; }
         }
 
         @media (max-width: 480px) {
@@ -506,6 +530,7 @@
             .action-btn { font-size: 0.35rem; padding: 1px 4px; min-height: 16px; }
             .log-panel { bottom: 36px; width: 100px; max-height: 40px; font-size: 0.3rem; }
             .panel-right { display: none; }
+            .back-btn { font-size: 0.4rem; padding: 2px 8px; }
         }
 
         /* ===== SCROLLBAR GLOBAL ===== */
@@ -582,6 +607,18 @@
             font-family: 'Courier New', monospace;
             letter-spacing: 2px;
         }
+
+        /* ===== PUFF PIE CONTAINER ===== */
+        #puff-pie-container {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1001;
+        }
+
+        #puff-pie-container canvas {
+            pointer-events: auto;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -590,8 +627,8 @@
 <div class="loading-overlay" id="loadingOverlay">
     <div style="text-align:center;">
         <div class="loading-spinner"></div>
-        <div class="loading-text">NAVIMATOR VANGUARD v5.0</div>
-        <div class="loading-text" style="font-size:0.5rem;margin-top:4px;opacity:0.6;">MAP PUFF PIE · INITIALIZING...</div>
+        <div class="loading-text">MAP PUFF PIE v2.0</div>
+        <div class="loading-text" style="font-size:0.5rem;margin-top:4px;opacity:0.6;">ВИЗУАЛИЗАЦИЯ ДАННЫХ...</div>
     </div>
 </div>
 
@@ -605,10 +642,14 @@
     <div class="top-bar">
         <div class="brand">
             <div class="logo">⬡</div>
-            <span>NAVIMATOR VANGUARD</span>
+            <span>MAP PUFF PIE</span>
         </div>
-        <div class="version-badge" id="versionBadge">CIVIL · v5.0</div>
+        <div class="version-badge">МОДУЛЬ · v2.0</div>
         <div class="status-items">
+            <!-- КНОПКА НАЗАД НА ГЛАВНУЮ -->
+            <button class="back-btn" id="backToMainBtn">
+                <i class="fas fa-arrow-left"></i> НА ГЛАВНУЮ
+            </button>
             <span class="status-item active" id="gpsStatusItem">
                 <i class="fas fa-satellite-dish"></i>
                 <span id="gpsStatusText">GPS</span>
@@ -629,10 +670,6 @@
                 <i class="fas fa-clock"></i>
                 <span id="timeDisplay">--:--:--</span>
             </span>
-            <select id="langSelect" style="background:rgba(10,26,10,0.6);border:1px solid var(--border-color);color:var(--text-secondary);font-size:0.5rem;padding:2px 8px;border-radius:4px;font-family:'Segoe UI',sans-serif;cursor:pointer;font-weight:500;">
-                <option value="ru">RU</option>
-                <option value="en">EN</option>
-            </select>
         </div>
     </div>
 
@@ -664,17 +701,17 @@
     <div class="panel-right" id="panelRight">
         <div class="analysis-title">
             <i class="fas fa-brain"></i>
-            <span id="analysisTitle">SITUATIONAL ANALYSIS</span>
+            <span id="analysisTitle">СИТУАЦИОННЫЙ АНАЛИЗ</span>
         </div>
         <div class="threat-index" id="threatIndex">--</div>
         <div class="threat-label" id="threatLabel">--</div>
         <div class="stat-grid">
             <div class="stat-item">
-                THREAT
+                УГРОЗА
                 <span class="value" id="threatLevel">--</span>
             </div>
             <div class="stat-item">
-                RATIO
+                СООТН.
                 <span class="value" id="forceRatio">--</span>
             </div>
             <div class="stat-item">
@@ -682,12 +719,12 @@
                 <span class="value" id="losValue">--</span>
             </div>
             <div class="stat-item">
-                ALERTS
+                АЛЕРТЫ
                 <span class="value" id="alertCount">--</span>
             </div>
         </div>
         <div id="recoList">
-            <div class="reco-item"><i class="fas fa-sync fa-spin"></i> LOADING...</div>
+            <div class="reco-item"><i class="fas fa-sync fa-spin"></i> ЗАГРУЗКА...</div>
         </div>
     </div>
 
@@ -700,7 +737,7 @@
         <div>
             <i class="fas fa-satellite-dish"></i>
             <span>GPS:</span>
-            <span class="gps-status" id="gpsStatus">INITIALIZING</span>
+            <span class="gps-status" id="gpsStatus">ИНИЦИАЛИЗАЦИЯ</span>
         </div>
         <div>
             <i class="fas fa-database"></i>
@@ -708,11 +745,11 @@
         </div>
         <div id="moduleStatus">
             <i class="fas fa-puzzle-piece"></i>
-            <span>CIVIL</span>
+            <span>PUFF PIE</span>
         </div>
         <div>
             <i class="fas fa-chart-pie"></i>
-            <span id="pieStatus">PUFF PIE</span>
+            <span id="pieStatus">АКТИВЕН ✓</span>
         </div>
     </div>
 
@@ -746,13 +783,13 @@
             <i class="fas fa-location-arrow"></i> CTR
         </button>
         <button class="action-btn" id="analyzeBtn">
-            <i class="fas fa-chart-simple"></i> ANZ
+            <i class="fas fa-chart-simple"></i> АНАЛ
         </button>
         <button class="action-btn danger" id="clearBtn">
-            <i class="fas fa-trash-alt"></i> CLR
+            <i class="fas fa-trash-alt"></i> ОЧИС
         </button>
-        <button class="action-btn pie-btn" id="puffPieBtn">
-            <i class="fas fa-chart-pie"></i> PIE
+        <button class="action-btn pie-btn active" id="togglePieBtn">
+            <i class="fas fa-chart-pie"></i> PIE ✓
         </button>
         <button class="action-btn" id="exportBtn">
             <i class="fas fa-file-export"></i> EXP
@@ -766,11 +803,11 @@
     <div class="log-panel" id="logPanel">
         <div class="log-entry">
             <span class="time">[--:--:--]</span>
-            <span>NAVIMATOR VANGUARD v5.0</span>
+            <span>MAP PUFF PIE v2.0</span>
         </div>
         <div class="log-entry">
             <span class="time">[--:--:--]</span>
-            <span>MAP PUFF PIE LOADING...</span>
+            <span>ЗАГРУЗКА МОДУЛЯ...</span>
         </div>
     </div>
 </div>
@@ -779,7 +816,8 @@
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script>
 // ================================================================
-// NAVIMATOR VANGUARD · MAP PUFF PIE v1.0
+// MAP PUFF PIE v2.0 - ПОЛНАЯ ВЕРСИЯ
+// С ИНТЕГРАЦИЕЙ С ЯДРОМ (index.html)
 // ================================================================
 
 // ===== CONFIGURATION =====
@@ -790,7 +828,7 @@ const CFG = {
     MAX_LOG: 30,
     UPDATE_INTERVAL: 3000,
     MAX_MARKERS: 500,
-    VERSION: '5.0'
+    VERSION: '2.0'
 };
 
 // ===== STATE =====
@@ -798,7 +836,6 @@ let map, db;
 let markers = [];
 let markerObjects = [];
 let currentPos = { ...CFG.DEFAULT_POS };
-let currentVersion = 'civil';
 let currentLang = 'ru';
 let watchId = null;
 let isInitialized = false;
@@ -830,7 +867,9 @@ const LANG = {
     }
 };
 
-// ===== DOM HELPERS =====
+// ================================================================
+// DOM HELPERS
+// ================================================================
 const $ = id => document.getElementById(id);
 const DOM = {
     mgrs: $('mgrsLive'),
@@ -856,7 +895,8 @@ const DOM = {
     moduleStatus: $('moduleStatus'),
     analysisTitle: $('analysisTitle'),
     gridInfo: $('gridInfo'),
-    loadingOverlay: $('loadingOverlay')
+    loadingOverlay: $('loadingOverlay'),
+    pieStatus: $('pieStatus')
 };
 
 // ===== LOGGING =====
@@ -893,17 +933,19 @@ function updateCoords(lat, lng) {
     }
 }
 
-// ===== DATABASE =====
+// ================================================================
+// DATABASE (ОБЩАЯ С ЯДРОМ)
+// ================================================================
 function initDB() {
     return new Promise((resolve, reject) => {
         const req = indexedDB.open(CFG.DB_NAME, 2);
         req.onerror = e => { 
-            log(`DB Error: ${e.target.error}`, true); 
+            log(`Ошибка БД: ${e.target.error}`, true); 
             reject(e); 
         };
         req.onsuccess = e => { 
             db = e.target.result; 
-            log('💾 Database connected'); 
+            log('💾 База данных подключена'); 
             resolve(db); 
         };
         req.onupgradeneeded = e => {
@@ -913,25 +955,10 @@ function initDB() {
                 store.createIndex('type', 'type');
                 store.createIndex('version', 'version');
                 store.createIndex('timestamp', 'timestamp');
-                log('📀 Database schema created');
+                log('📀 Схема БД создана');
             }
         };
     });
-}
-
-async function saveEntity(data) {
-    if (!db) return;
-    try {
-        const tx = db.transaction(CFG.STORE_NAME, 'readwrite');
-        tx.objectStore(CFG.STORE_NAME).add(data);
-        await new Promise((resolve, reject) => {
-            tx.oncomplete = resolve;
-            tx.onerror = reject;
-        });
-        log(`💾 ${data.type.toUpperCase()} saved`);
-    } catch(e) {
-        log(`Save error: ${e}`, true);
-    }
 }
 
 async function loadEntities() {
@@ -949,6 +976,21 @@ async function loadEntities() {
     }
 }
 
+async function saveEntity(data) {
+    if (!db) return;
+    try {
+        const tx = db.transaction(CFG.STORE_NAME, 'readwrite');
+        tx.objectStore(CFG.STORE_NAME).add(data);
+        await new Promise((resolve, reject) => {
+            tx.oncomplete = resolve;
+            tx.onerror = reject;
+        });
+        log(`💾 ${data.type.toUpperCase()} сохранён`);
+    } catch(e) {
+        log(`Ошибка сохранения: ${e}`, true);
+    }
+}
+
 async function clearDB() {
     if (!db) return;
     try {
@@ -958,59 +1000,15 @@ async function clearDB() {
             tx.oncomplete = resolve;
             tx.onerror = reject;
         });
-        log('🗑️ Database cleared');
+        log('🗑️ База данных очищена');
     } catch(e) {
-        log(`Clear error: ${e}`, true);
+        log(`Ошибка очистки: ${e}`, true);
     }
 }
 
-// ===== EXPORT/IMPORT =====
-function exportData() {
-    const data = markers.map(m => ({ ...m }));
-    const json = JSON.stringify(data, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `navimator_export_${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    log('📤 Data exported');
-}
-
-function importData() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        try {
-            const text = await file.text();
-            const data = JSON.parse(text);
-            if (!Array.isArray(data)) throw new Error('Invalid format');
-            
-            markerObjects.forEach(({ marker }) => marker.remove());
-            markerObjects = [];
-            markers = [];
-            await clearDB();
-            
-            for (const m of data) {
-                if (m.lat && m.lng && m.type) {
-                    await addMarker(m.lat, m.lng, m.type, m.label || '', true);
-                }
-            }
-            analyze();
-            if (puffPieInstance) puffPieInstance.setData(markers);
-            log(`📥 Imported ${data.length} entities`);
-        } catch(err) {
-            log(`Import error: ${err.message}`, true);
-        }
-    };
-    input.click();
-}
-
-// ===== MARKERS =====
+// ================================================================
+// MARKERS (ОБЩИЕ С ЯДРОМ)
+// ================================================================
 function getSymbol(type) {
     const sym = {
         blufor: { cls: 'sym-blufor', label: 'B', text: 'BLUFOR' },
@@ -1064,7 +1062,7 @@ function createMarker(type, label = '') {
 
 async function addMarker(lat, lng, type, customLabel = '', skipSave = false) {
     if (markers.length >= CFG.MAX_MARKERS) {
-        log('⚠️ Max markers reached', true);
+        log('⚠️ Достигнут лимит маркеров', true);
         return null;
     }
     
@@ -1082,7 +1080,7 @@ async function addMarker(lat, lng, type, customLabel = '', skipSave = false) {
         lat: lat,
         lng: lng,
         label: customLabel || getSymbol(type).text,
-        version: currentVersion,
+        version: 'puff_pie',
         timestamp: new Date().toISOString()
     };
     
@@ -1090,12 +1088,19 @@ async function addMarker(lat, lng, type, customLabel = '', skipSave = false) {
     markerObjects.push({ marker, data });
     if (!skipSave) await saveEntity(data);
     updateStats();
-    if (puffPieInstance) puffPieInstance.setData(markers);
+    
+    // Обновляем Puff Pie
+    if (puffPieInstance) {
+        puffPieInstance.setData(markers);
+    }
+    
     log(`📍 ${data.label} @ ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
     return data;
 }
 
-// ===== STATISTICS =====
+// ================================================================
+// STATISTICS & ANALYSIS
+// ================================================================
 function updateStats() {
     const counts = {
         total: markers.length,
@@ -1116,7 +1121,6 @@ function updateStats() {
     return counts;
 }
 
-// ===== ANALYSIS =====
 function analyze() {
     const c = updateStats();
     const total = c.total;
@@ -1128,7 +1132,7 @@ function analyze() {
         DOM.threatLvl.textContent = '--';
         DOM.forceRatio.textContent = '--';
         DOM.losValue.textContent = '--';
-        DOM.recoList.innerHTML = '<div class="reco-item"><i class="fas fa-info-circle"></i> No entities</div>';
+        DOM.recoList.innerHTML = '<div class="reco-item"><i class="fas fa-info-circle"></i> Нет данных</div>';
         return;
     }
     
@@ -1153,28 +1157,30 @@ function analyze() {
     DOM.losValue.textContent = `${los}%`;
     
     const recs = [];
-    if (threatScore > 70) recs.push('🚨 CRITICAL - EVACUATE IMMEDIATELY');
-    else if (threatScore > 45) recs.push('⚠️ HIGH THREAT - REINFORCE');
-    else if (threatScore > 25) recs.push('⚡ MEDIUM - INCREASE VIGILANCE');
-    else recs.push('✅ LOW - CONTINUE OPERATIONS');
+    if (threatScore > 70) recs.push('🚨 КРИТИЧНО - НЕМЕДЛЕННАЯ ЭВАКУАЦИЯ');
+    else if (threatScore > 45) recs.push('⚠️ ВЫСОКАЯ УГРОЗА - УСИЛЕНИЕ');
+    else if (threatScore > 25) recs.push('⚡ СРЕДНЯЯ - ПОВЫШИТЬ БДИТЕЛЬНОСТЬ');
+    else recs.push('✅ НИЗКАЯ - ПРОДОЛЖАТЬ ОПЕРАЦИИ');
     
-    if (ratio > 1.5) recs.push('🔴 OPFOR SUPERIORITY');
-    if (c.blufor === 0) recs.push('⚠️ NO FRIENDLY FORCES');
-    if (c.alert > 3) recs.push('🔔 MULTIPLE ALERTS');
-    if (c.hvt > 0) recs.push('🎯 HVT DETECTED');
-    if (c.med > 0) recs.push('🏥 MEDICAL ASSETS');
-    if (c.sar > 0) recs.push('🔍 SAR ACTIVE');
-    if (c.mesh > 0) recs.push('📡 MESH NETWORK');
-    if (recs.length < 3) recs.push('📡 MAINTAIN SITUATIONAL AWARENESS');
+    if (ratio > 1.5) recs.push('🔴 ПРЕВОСХОДСТВО OPFOR');
+    if (c.blufor === 0) recs.push('⚠️ НЕТ СВОИХ СИЛ');
+    if (c.alert > 3) recs.push('🔔 МНОЖЕСТВЕННЫЕ АЛЕРТЫ');
+    if (c.hvt > 0) recs.push('🎯 ОБНАРУЖЕНА ЦЕЛЬ (HVT)');
+    if (c.med > 0) recs.push('🏥 МЕДИЦИНСКИЕ СРЕДСТВА');
+    if (c.sar > 0) recs.push('🔍 АКТИВЕН ПОИСК (SAR)');
+    if (c.mesh > 0) recs.push('📡 MESH-СЕТЬ АКТИВНА');
+    if (recs.length < 3) recs.push('📡 ПОДДЕРЖИВАТЬ СИТУАЦИОННУЮ ОСВЕДОМЛЁННОСТЬ');
     
     DOM.recoList.innerHTML = recs.slice(0, 6).map(r =>
         `<div class="reco-item"><i class="fas fa-chevron-right"></i> ${r}</div>`
     ).join('');
 }
 
-// ===== CLEAR =====
+// ================================================================
+// CLEAR
+// ================================================================
 async function clearAll() {
-    if (!confirm('⚠️ CLEAR ALL TACTICAL DATA?')) return;
+    if (!confirm('⚠️ ОЧИСТИТЬ ВСЕ ДАННЫЕ?')) return;
     markerObjects.forEach(({ marker }) => marker.remove());
     markerObjects = [];
     markers = [];
@@ -1182,14 +1188,16 @@ async function clearAll() {
     updateStats();
     analyze();
     if (puffPieInstance) puffPieInstance.setData(markers);
-    log('🗑️ All data cleared');
+    log('🗑️ Все данные очищены');
 }
 
-// ===== GPS =====
+// ================================================================
+// GPS
+// ================================================================
 function onGPS(pos) {
     currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     updateCoords(currentPos.lat, currentPos.lng);
-    DOM.gpsStatus.textContent = 'ACTIVE ✓';
+    DOM.gpsStatus.textContent = 'АКТИВЕН ✓';
     DOM.gpsStatus.className = 'gps-status active';
     DOM.gpsStatusText.textContent = 'GPS ✓';
     const item = document.getElementById('gpsStatusItem');
@@ -1197,7 +1205,7 @@ function onGPS(pos) {
 }
 
 function onGPSError(err) {
-    DOM.gpsStatus.textContent = 'FAILBACK';
+    DOM.gpsStatus.textContent = 'ОТКАЗ';
     DOM.gpsStatus.className = 'gps-status';
     DOM.gpsStatusText.textContent = 'GPS ✗';
     document.getElementById('gpsStatusItem').classList.remove('active');
@@ -1211,22 +1219,70 @@ function startGPS() {
             maximumAge: 10000,
             timeout: 30000
         });
-        log('🛰️ GPS tracking started');
+        log('🛰️ GPS-трекинг запущен');
     } else {
-        DOM.gpsStatus.textContent = 'NOT SUPPORTED';
+        DOM.gpsStatus.textContent = 'НЕ ПОДДЕРЖИВАЕТСЯ';
         DOM.gpsStatusText.textContent = 'GPS ✗';
-        log('⚠️ GPS not supported', true);
+        log('⚠️ GPS не поддерживается', true);
     }
 }
 
 function centerPosition() {
     const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
     map.flyTo({ center: [pos.lng, pos.lat], zoom: 14, duration: 800 });
-    log('🎯 Centered on position');
+    log('🎯 Центрирование на позиции');
 }
 
 // ================================================================
-// MAP PUFF PIE CLASS
+// EXPORT / IMPORT (JSON)
+// ================================================================
+function exportData() {
+    const data = markers.map(m => ({ ...m }));
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `puff_pie_export_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    log('📤 Данные экспортированы');
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const data = JSON.parse(text);
+            if (!Array.isArray(data)) throw new Error('Неверный формат');
+            
+            markerObjects.forEach(({ marker }) => marker.remove());
+            markerObjects = [];
+            markers = [];
+            await clearDB();
+            
+            for (const m of data) {
+                if (m.lat && m.lng && m.type) {
+                    await addMarker(m.lat, m.lng, m.type, m.label || '', true);
+                }
+            }
+            analyze();
+            if (puffPieInstance) puffPieInstance.setData(markers);
+            log(`📥 Импортировано ${data.length} объектов`);
+        } catch(err) {
+            log(`Ошибка импорта: ${err.message}`, true);
+        }
+    };
+    input.click();
+}
+
+// ================================================================
+// MAP PUFF PIE CLASS (ЯДРО МОДУЛЯ)
 // ================================================================
 
 class MapPuffPie {
@@ -1260,36 +1316,12 @@ class MapPuffPie {
             this.startAutoUpdate();
         }
         this.render();
-        log('🥧 Puff Pie initialized');
+        log('🥧 Puff Pie инициализирован');
     }
     
     createContainer() {
         this.container = document.createElement('div');
         this.container.id = 'puff-pie-container';
-        this.container.style.cssText = `
-            position: absolute;
-            pointer-events: none;
-            z-index: 1001;
-            ${this.getPositionStyles()}
-        `;
-        
-        this.canvas = document.createElement('canvas');
-        this.canvas.width = this.options.radius * 2;
-        this.canvas.height = this.options.radius * 2;
-        this.canvas.style.cssText = `
-            width: ${this.options.radius * 2}px;
-            height: ${this.options.radius * 2}px;
-            filter: drop-shadow(0 0 20px rgba(0, 229, 204, 0.3));
-            pointer-events: auto;
-            cursor: pointer;
-        `;
-        
-        this.container.appendChild(this.canvas);
-        document.getElementById('map').appendChild(this.container);
-        this.ctx = this.canvas.getContext('2d');
-    }
-    
-    getPositionStyles() {
         const positions = {
             'top-left': 'top: 100px; left: 10px;',
             'top-right': 'top: 100px; right: 10px;',
@@ -1297,7 +1329,21 @@ class MapPuffPie {
             'bottom-right': 'bottom: 100px; right: 10px;',
             'center': 'top: 50%; left: 50%; transform: translate(-50%, -50%);'
         };
-        return positions[this.options.position] || positions['bottom-right'];
+        this.container.style.cssText = `
+            position: absolute; pointer-events: none; z-index: 1001;
+            ${positions[this.options.position] || positions['bottom-right']}
+        `;
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = this.options.radius * 2;
+        this.canvas.height = this.options.radius * 2;
+        this.canvas.style.cssText = `
+            width: ${this.options.radius * 2}px; height: ${this.options.radius * 2}px;
+            filter: drop-shadow(0 0 20px rgba(0, 229, 204, 0.3));
+            pointer-events: auto; cursor: pointer;
+        `;
+        this.container.appendChild(this.canvas);
+        document.getElementById('map').appendChild(this.container);
+        this.ctx = this.canvas.getContext('2d');
     }
     
     setData(markers) {
@@ -1309,27 +1355,19 @@ class MapPuffPie {
     calculateZones() {
         const groups = {};
         const types = ['blufor', 'opfor', 'alert', 'poi', 'hvt', 'cp', 'med', 'sar', 'mesh'];
-        
-        types.forEach(type => {
-            groups[type] = this.markers.filter(m => m.type === type);
-        });
-        
+        types.forEach(type => { groups[type] = this.markers.filter(m => m.type === type); });
         this.zones = types.map(type => ({
             type: type,
             count: groups[type].length,
             color: this.getColor(type),
             label: this.getLabel(type),
-            startAngle: 0,
-            endAngle: 0,
-            percentage: 0
+            startAngle: 0, endAngle: 0, percentage: 0
         }));
-        
         this.zones = this.zones.filter(z => z.count > 0);
-        
         const total = this.zones.reduce((sum, z) => sum + z.count, 0);
         if (total > 0) {
             let startAngle = 0;
-            this.zones.forEach((zone, index) => {
+            this.zones.forEach((zone) => {
                 const percentage = zone.count / total;
                 zone.percentage = percentage;
                 zone.startAngle = startAngle;
@@ -1337,54 +1375,36 @@ class MapPuffPie {
                 startAngle = zone.endAngle;
             });
         }
-        
         this.puffEffect();
     }
     
     getColor(type) {
         const colors = {
-            'blufor': '#2A8CFF',
-            'opfor': '#FF4A4A',
-            'alert': '#FFAA33',
-            'poi': '#AAAAAA',
-            'hvt': '#FF0066',
-            'cp': '#FFD700',
-            'med': '#FF6B6B',
-            'sar': '#FF8C00',
-            'mesh': '#00CED1'
+            'blufor': '#2A8CFF', 'opfor': '#FF4A4A', 'alert': '#FFAA33',
+            'poi': '#AAAAAA', 'hvt': '#FF0066', 'cp': '#FFD700',
+            'med': '#FF6B6B', 'sar': '#FF8C00', 'mesh': '#00CED1'
         };
         return colors[type] || '#FFFFFF';
     }
     
     getLabel(type) {
         const labels = {
-            'blufor': 'BLUFOR',
-            'opfor': 'OPFOR',
-            'alert': '⚠ ALERT',
-            'poi': '📍 POI',
-            'hvt': '🎯 HVT',
-            'cp': '⭐ CP',
-            'med': '🏥 MED',
-            'sar': '🔍 SAR',
-            'mesh': '📡 MESH'
+            'blufor': 'BLUFOR', 'opfor': 'OPFOR', 'alert': '⚠ АЛЕРТ',
+            'poi': '📍 ТОЧКА', 'hvt': '🎯 ЦЕЛЬ', 'cp': '⭐ КП',
+            'med': '🏥 МЕД', 'sar': '🔍 ПОИСК', 'mesh': '📡 MESH'
         };
         return labels[type] || type.toUpperCase();
     }
     
     render() {
         if (!this.ctx || !this.isVisible) return;
-        
         const ctx = this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-        const cx = w / 2;
-        const cy = h / 2;
+        const w = this.canvas.width, h = this.canvas.height;
+        const cx = w / 2, cy = h / 2;
         const radius = Math.min(w, h) / 2 - 10;
-        
         ctx.clearRect(0, 0, w, h);
         ctx.shadowColor = 'rgba(0, 229, 204, 0.2)';
         ctx.shadowBlur = 30;
-        
         if (this.zones.length === 0) {
             ctx.beginPath();
             ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
@@ -1393,7 +1413,6 @@ class MapPuffPie {
             ctx.strokeStyle = '#1A3A1A';
             ctx.lineWidth = 2;
             ctx.stroke();
-            
             ctx.fillStyle = '#8BC88B';
             ctx.font = '14px "Segoe UI", sans-serif';
             ctx.textAlign = 'center';
@@ -1401,19 +1420,15 @@ class MapPuffPie {
             ctx.fillText('НЕТ ДАННЫХ', cx, cy);
             return;
         }
-        
         this.drawPuffBackground(ctx, cx, cy, radius);
-        
         let startAngle = 0;
-        this.zones.forEach((zone, index) => {
+        this.zones.forEach((zone) => {
             const endAngle = startAngle + zone.percentage * 2 * Math.PI;
-            
             const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
             const color = zone.color;
             grad.addColorStop(0, color + '44');
             grad.addColorStop(0.5, color + '88');
             grad.addColorStop(1, color + 'FF');
-            
             ctx.beginPath();
             ctx.moveTo(cx, cy);
             ctx.arc(cx, cy, radius, startAngle, endAngle);
@@ -1423,13 +1438,9 @@ class MapPuffPie {
             ctx.strokeStyle = 'rgba(0, 229, 204, 0.3)';
             ctx.lineWidth = 1.5;
             ctx.stroke();
-            
             this.drawPuffBubble(ctx, cx, cy, radius, startAngle, endAngle, zone);
-            
             startAngle = endAngle;
         });
-        
-        // Центр
         ctx.beginPath();
         ctx.arc(cx, cy, radius * 0.3, 0, 2 * Math.PI);
         ctx.fillStyle = 'rgba(0, 5, 0, 0.9)';
@@ -1437,18 +1448,15 @@ class MapPuffPie {
         ctx.strokeStyle = 'rgba(0, 229, 204, 0.3)';
         ctx.lineWidth = 2;
         ctx.stroke();
-        
         const total = this.zones.reduce((sum, z) => sum + z.count, 0);
         ctx.fillStyle = '#00E5CC';
         ctx.font = 'bold 22px "Courier New", monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(total, cx, cy - 6);
-        
         ctx.fillStyle = '#8BC88B';
         ctx.font = '9px "Segoe UI", sans-serif';
         ctx.fillText('ВСЕГО', cx, cy + 18);
-        
         this.drawLegend(ctx, w, h);
         this.drawPuffParticles(ctx, cx, cy, radius);
     }
@@ -1456,17 +1464,14 @@ class MapPuffPie {
     drawPuffBackground(ctx, cx, cy, radius) {
         const time = Date.now() / 2000;
         const pulse = Math.sin(time) * 0.05 + 0.95;
-        
         const grad = ctx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 1.5);
         grad.addColorStop(0, 'rgba(0, 229, 204, 0)');
         grad.addColorStop(0.5, 'rgba(0, 229, 204, 0.05)');
         grad.addColorStop(1, 'rgba(0, 229, 204, 0)');
-        
         ctx.beginPath();
         ctx.arc(cx, cy, radius * 1.5, 0, 2 * Math.PI);
         ctx.fillStyle = grad;
         ctx.fill();
-        
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
         ctx.fillStyle = `rgba(0, 5, 0, ${0.7 * pulse})`;
@@ -1480,10 +1485,8 @@ class MapPuffPie {
         const midAngle = (startAngle + endAngle) / 2;
         const bubbleRadius = Math.min(radius * 0.12 * (zone.count / 10 + 0.5), 25);
         const distance = radius * 0.85;
-        
         const bx = cx + Math.cos(midAngle) * distance;
         const by = cy + Math.sin(midAngle) * distance;
-        
         ctx.beginPath();
         ctx.arc(bx, by, bubbleRadius, 0, 2 * Math.PI);
         ctx.fillStyle = zone.color + '88';
@@ -1491,7 +1494,6 @@ class MapPuffPie {
         ctx.strokeStyle = zone.color;
         ctx.lineWidth = 2;
         ctx.stroke();
-        
         ctx.fillStyle = '#FFFFFF';
         ctx.font = 'bold 12px "Courier New", monospace';
         ctx.textAlign = 'center';
@@ -1506,22 +1508,18 @@ class MapPuffPie {
                 const angle = Math.random() * 2 * Math.PI;
                 const dist = Math.random() * radius * 0.8 + radius * 0.2;
                 this.particles.push({
-                    angle: angle,
-                    distance: dist,
+                    angle, distance: dist,
                     speed: 0.001 + Math.random() * 0.002,
                     size: 1 + Math.random() * 3,
                     alpha: 0.3 + Math.random() * 0.5
                 });
             }
         }
-        
         const time = Date.now() / 1000;
-        
         this.particles.forEach(p => {
             p.angle += p.speed;
             const x = cx + Math.cos(p.angle + time * 0.5) * p.distance;
             const y = cy + Math.sin(p.angle + time * 0.5) * p.distance;
-            
             ctx.beginPath();
             ctx.arc(x, y, p.size, 0, 2 * Math.PI);
             ctx.fillStyle = `rgba(0, 229, 204, ${p.alpha * 0.3})`;
@@ -1534,23 +1532,18 @@ class MapPuffPie {
         let legendY = 10;
         const fontSize = 9;
         const spacing = 16;
-        
         ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        
         this.zones.slice(0, 6).forEach(zone => {
             ctx.fillStyle = zone.color;
             ctx.fillRect(legendX, legendY, 8, 8);
-            
             ctx.fillStyle = '#8BC88B';
             ctx.font = `${fontSize}px "Segoe UI", sans-serif`;
             const label = `${zone.label}: ${zone.count}`;
             ctx.fillText(label, legendX + 12, legendY - 1);
-            
             ctx.fillStyle = '#4A7A4A';
             ctx.font = `${fontSize - 2}px "Courier New", monospace`;
             ctx.fillText(`${(zone.percentage * 100).toFixed(1)}%`, legendX + 85, legendY);
-            
             legendY += spacing;
         });
     }
@@ -1558,15 +1551,12 @@ class MapPuffPie {
     puffEffect() {
         const startTime = Date.now();
         const duration = 700;
-        
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
             const scale = 0.3 + 0.7 * this.easeOutElastic(progress);
             this.canvas.style.transform = `scale(${scale})`;
             this.canvas.style.opacity = Math.min(1, progress * 1.5);
-            
             if (progress < 1) {
                 this.animationFrame = requestAnimationFrame(animate);
             } else {
@@ -1574,7 +1564,6 @@ class MapPuffPie {
                 this.canvas.style.opacity = '1';
             }
         };
-        
         animate();
     }
     
@@ -1584,187 +1573,102 @@ class MapPuffPie {
     }
     
     startAutoUpdate() {
-        this.updateInterval = setInterval(() => {
-            this.render();
-        }, 100);
+        this.updateInterval = setInterval(() => this.render(), 100);
     }
     
     stopAutoUpdate() {
-        if (this.updateInterval) {
-            clearInterval(this.updateInterval);
-            this.updateInterval = null;
-        }
-        if (this.animationFrame) {
-            cancelAnimationFrame(this.animationFrame);
-            this.animationFrame = null;
-        }
+        if (this.updateInterval) { clearInterval(this.updateInterval); this.updateInterval = null; }
+        if (this.animationFrame) { cancelAnimationFrame(this.animationFrame); this.animationFrame = null; }
     }
     
     setupEventListeners() {
         this.canvas.addEventListener('click', (e) => {
             const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            this.handleClick(x, y);
+            this.handleClick(e.clientX - rect.left, e.clientY - rect.top);
         });
-        
         this.canvas.addEventListener('mousemove', (e) => {
             const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            this.handleHover(x, y);
+            this.handleHover(e.clientX - rect.left, e.clientY - rect.top);
         });
     }
     
     handleClick(x, y) {
-        const cx = this.canvas.width / 2;
-        const cy = this.canvas.height / 2;
-        const dx = x - cx;
-        const dy = y - cy;
+        const cx = this.canvas.width / 2, cy = this.canvas.height / 2;
+        const dx = x - cx, dy = y - cy;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const radius = Math.min(this.canvas.width, this.canvas.height) / 2 - 10;
-        
         if (dist > radius || this.zones.length === 0) return;
-        
         const angle = Math.atan2(dy, dx) + Math.PI * 2;
         const normalizedAngle = angle % (2 * Math.PI);
-        
         let found = null;
         for (const zone of this.zones) {
-            if (normalizedAngle >= zone.startAngle && normalizedAngle < zone.endAngle) {
-                found = zone;
-                break;
-            }
+            if (normalizedAngle >= zone.startAngle && normalizedAngle < zone.endAngle) { found = zone; break; }
         }
-        
-        if (found) {
-            this.showDetails(found);
-        }
+        if (found) this.showDetails(found);
     }
     
     handleHover(x, y) {
-        const cx = this.canvas.width / 2;
-        const cy = this.canvas.height / 2;
-        const dx = x - cx;
-        const dy = y - cy;
+        const cx = this.canvas.width / 2, cy = this.canvas.height / 2;
+        const dx = x - cx, dy = y - cy;
         const dist = Math.sqrt(dx * dx + dy * dy);
         const radius = Math.min(this.canvas.width, this.canvas.height) / 2 - 10;
-        
-        if (dist > radius || this.zones.length === 0) {
-            this.canvas.style.cursor = 'default';
-            return;
-        }
-        
+        if (dist > radius || this.zones.length === 0) { this.canvas.style.cursor = 'default'; return; }
         const angle = Math.atan2(dy, dx) + Math.PI * 2;
         const normalizedAngle = angle % (2 * Math.PI);
-        
         let found = null;
         for (const zone of this.zones) {
-            if (normalizedAngle >= zone.startAngle && normalizedAngle < zone.endAngle) {
-                found = zone;
-                break;
-            }
+            if (normalizedAngle >= zone.startAngle && normalizedAngle < zone.endAngle) { found = zone; break; }
         }
-        
         this.canvas.style.cursor = found ? 'pointer' : 'default';
     }
     
     showDetails(zone) {
         const markersOfType = this.markers.filter(m => m.type === zone.type);
-        
         const popup = document.createElement('div');
         popup.style.cssText = `
-            position: absolute;
-            background: rgba(0, 5, 0, 0.95);
-            backdrop-filter: blur(12px);
-            border: 1px solid ${zone.color};
-            border-radius: 8px;
-            padding: 12px 16px;
-            color: #E0F0E0;
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 12px;
-            pointer-events: auto;
-            z-index: 1002;
-            min-width: 200px;
-            max-height: 300px;
-            overflow-y: auto;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+            position: absolute; background: rgba(0, 5, 0, 0.95); backdrop-filter: blur(12px);
+            border: 1px solid ${zone.color}; border-radius: 8px; padding: 12px 16px;
+            color: #E0F0E0; font-family: 'Segoe UI', sans-serif; font-size: 12px;
+            pointer-events: auto; z-index: 1002; min-width: 200px; max-height: 300px;
+            overflow-y: auto; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
         `;
-        
         popup.innerHTML = `
-            <h3 style="color: ${zone.color}; margin: 0 0 8px 0; font-size: 14px;">
-                ${this.getLabel(zone.type)}
-            </h3>
-            <div style="font-size: 11px; color: #8BC88B; margin-bottom: 8px;">
-                Всего: ${zone.count} объектов
-            </div>
+            <h3 style="color: ${zone.color}; margin: 0 0 8px 0; font-size: 14px;">${this.getLabel(zone.type)}</h3>
+            <div style="font-size: 11px; color: #8BC88B; margin-bottom: 8px;">Всего: ${zone.count} объектов</div>
             ${markersOfType.slice(0, 20).map(m => `
                 <div style="padding: 3px 0; border-bottom: 1px solid #1A3A1A; font-size: 10px; color: #AAA;">
-                    ${m.label || m.type} 
-                    <span style="color: #4A7A4A; float: right;">
-                        ${m.lat.toFixed(4)}, ${m.lng.toFixed(4)}
-                    </span>
+                    ${m.label || m.type}
+                    <span style="color: #4A7A4A; float: right;">${m.lat.toFixed(4)}, ${m.lng.toFixed(4)}</span>
                 </div>
             `).join('')}
             ${markersOfType.length > 20 ? `<div style="color: #4A7A4A; font-size: 10px; text-align: center; padding: 4px;">+ ещё ${markersOfType.length - 20}</div>` : ''}
-            <div style="margin-top: 8px; font-size: 10px; color: #4A7A4A; text-align: right;">
-                ${(zone.percentage * 100).toFixed(1)}% от всех объектов
-            </div>
+            <div style="margin-top: 8px; font-size: 10px; color: #4A7A4A; text-align: right;">${(zone.percentage * 100).toFixed(1)}% от всех объектов</div>
         `;
-        
         const rect = this.canvas.getBoundingClientRect();
         const mapRect = document.getElementById('map').getBoundingClientRect();
-        let left = rect.right + 10;
-        let top = rect.top;
-        
-        if (left + 220 > mapRect.width) {
-            left = rect.left - 220;
-        }
-        if (top + 320 > mapRect.height) {
-            top = mapRect.height - 320;
-        }
+        let left = rect.right + 10, top = rect.top;
+        if (left + 220 > mapRect.width) left = rect.left - 220;
+        if (top + 320 > mapRect.height) top = mapRect.height - 320;
         if (top < 10) top = 10;
-        
         popup.style.left = left + 'px';
         popup.style.top = top + 'px';
-        
         document.getElementById('map').appendChild(popup);
-        
         const closeHandler = (e) => {
             if (!popup.contains(e.target) && e.target !== this.canvas) {
                 popup.remove();
                 document.removeEventListener('click', closeHandler);
             }
         };
-        setTimeout(() => {
-            document.addEventListener('click', closeHandler);
-        }, 100);
+        setTimeout(() => document.addEventListener('click', closeHandler), 100);
     }
     
-    show() {
-        this.isVisible = true;
-        this.container.style.display = 'block';
-        this.render();
-    }
-    
-    hide() {
-        this.isVisible = false;
-        this.container.style.display = 'none';
-    }
-    
-    toggle() {
-        if (this.isVisible) {
-            this.hide();
-        } else {
-            this.show();
-        }
-    }
+    show() { this.isVisible = true; this.container.style.display = 'block'; this.render(); }
+    hide() { this.isVisible = false; this.container.style.display = 'none'; }
+    toggle() { this.isVisible ? this.hide() : this.show(); }
     
     destroy() {
         this.stopAutoUpdate();
-        if (this.container && this.container.parentNode) {
-            this.container.parentNode.removeChild(this.container);
-        }
+        if (this.container && this.container.parentNode) this.container.parentNode.removeChild(this.container);
         this.particles = null;
         this.zones = [];
         this.markers = [];
@@ -1772,58 +1676,57 @@ class MapPuffPie {
 }
 
 // ================================================================
-// ИНИЦИАЛИЗАЦИЯ PUFF PIE
+// УПРАВЛЕНИЕ PUFF PIE
 // ================================================================
 
 function initPuffPie() {
-    if (!map) {
-        setTimeout(initPuffPie, 500);
-        return;
-    }
-    
-    if (puffPieInstance) {
-        puffPieInstance.destroy();
-    }
-    
-    puffPieInstance = new MapPuffPie(map, {
-        radius: 160,
-        position: 'bottom-right',
-        autoUpdate: true
+    if (!map) { setTimeout(initPuffPie, 500); return; }
+    if (puffPieInstance) { puffPieInstance.destroy(); }
+    puffPieInstance = new MapPuffPie(map, { 
+        radius: 160, 
+        position: 'bottom-right', 
+        autoUpdate: true 
     });
-    
     puffPieInstance.setData(markers);
-    
-    const btn = document.getElementById('puffPieBtn');
+    const btn = document.getElementById('togglePieBtn');
     btn.classList.add('active');
     btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE ✓';
-    
-    log('🥧 Map Puff Pie activated');
+    DOM.pieStatus.textContent = 'АКТИВЕН ✓';
+    log('🥧 Puff Pie активирован');
 }
 
 function togglePuffPie() {
-    if (!puffPieInstance) {
-        initPuffPie();
-        return;
-    }
-    
+    if (!puffPieInstance) { initPuffPie(); return; }
     puffPieInstance.toggle();
-    const btn = document.getElementById('puffPieBtn');
-    
+    const btn = document.getElementById('togglePieBtn');
     if (puffPieInstance.isVisible) {
         btn.classList.add('active');
         btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE ✓';
-        document.getElementById('pieStatus').textContent = 'PUFF PIE ✓';
-        log('🥧 Puff Pie shown');
+        DOM.pieStatus.textContent = 'АКТИВЕН ✓';
+        log('🥧 Puff Pie показан');
     } else {
         btn.classList.remove('active');
         btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE';
-        document.getElementById('pieStatus').textContent = 'PUFF PIE ✗';
-        log('🥧 Puff Pie hidden');
+        DOM.pieStatus.textContent = 'СКРЫТ';
+        log('🥧 Puff Pie скрыт');
     }
 }
 
 // ================================================================
-// MAP & EVENTS
+// НАВИГАЦИЯ НА ГЛАВНУЮ
+// ================================================================
+
+function goToMain() {
+    // Сохраняем данные перед уходом
+    if (markers.length > 0) {
+        log('💾 Сохранение данных перед переходом...');
+    }
+    // Переход на главную страницу
+    window.location.href = 'index.html';
+}
+
+// ================================================================
+// MAP INIT
 // ================================================================
 
 async function initMap() {
@@ -1840,41 +1743,43 @@ async function initMap() {
         showZoom: true
     }), 'top-left');
     
+    // Click to add marker
     map.on('click', async (e) => {
         const { lat, lng } = e.lngLat;
         const types = ['blufor', 'opfor', 'alert', 'poi', 'hvt', 'cp', 'med', 'sar'];
         const list = types.map((t, i) => `${i+1}-${t.toUpperCase()}`).join(' ');
-        const choice = prompt(`Select type: ${list}`);
+        const choice = prompt(`Выберите тип: ${list}`);
         if (choice && types[parseInt(choice) - 1]) {
-            const label = prompt('Label (optional):');
+            const label = prompt('Метка (опционально):');
             await addMarker(lat, lng, types[parseInt(choice) - 1], label || '');
             analyze();
         }
     });
     
     map.on('load', async () => {
-        log('🗺️ Map loaded');
+        log('🗺️ Карта загружена');
         await initDB();
         const saved = await loadEntities();
         for (const m of saved) {
             await addMarker(m.lat, m.lng, m.type, m.label, true);
         }
-        log(`📌 ${saved.length} entities restored`);
+        log(`📌 Восстановлено ${saved.length} объектов`);
         updateStats();
         analyze();
         updateCoords(currentPos.lat, currentPos.lng);
         setInterval(analyze, CFG.UPDATE_INTERVAL);
-        DOM.dbStatus.textContent = 'DB OK';
+        DOM.dbStatus.textContent = 'БД OK';
         
+        // Демо-данные если пусто
         if (saved.length === 0) {
-            await addMarker(55.7558, 37.6173, 'blufor', 'CP MOSCOW');
+            await addMarker(55.7558, 37.6173, 'blufor', 'КП МОСКВА');
             await addMarker(55.7620, 37.6220, 'opfor', 'OPFOR 1');
-            await addMarker(55.7480, 37.6100, 'alert', 'ALERT ZONE');
-            await addMarker(55.7720, 37.6300, 'poi', 'STRATEGIC POI');
-            await addMarker(55.7400, 37.6000, 'hvt', 'HVT-ALPHA');
-            await addMarker(55.7800, 37.6400, 'med', 'FIELD HOSPITAL');
-            await addMarker(55.7300, 37.5900, 'sar', 'SAR TEAM');
-            await addMarker(55.7500, 37.6250, 'cp', 'TACTICAL CP');
+            await addMarker(55.7480, 37.6100, 'alert', 'ЗОНА АЛЕРТА');
+            await addMarker(55.7720, 37.6300, 'poi', 'СТРАТЕГИЧЕСКАЯ ТОЧКА');
+            await addMarker(55.7400, 37.6000, 'hvt', 'ЦЕЛЬ-АЛЬФА');
+            await addMarker(55.7800, 37.6400, 'med', 'ПОЛЕВОЙ ГОСПИТАЛЬ');
+            await addMarker(55.7300, 37.5900, 'sar', 'ГРУППА ПОИСКА');
+            await addMarker(55.7500, 37.6250, 'cp', 'ТАКТИЧЕСКИЙ КП');
             analyze();
         }
         
@@ -1883,7 +1788,7 @@ async function initMap() {
         
         isInitialized = true;
         DOM.loadingOverlay.classList.add('hidden');
-        log('✅ System operational');
+        log('✅ Система готова к работе');
     });
     
     map.on('move', () => {
@@ -1892,7 +1797,15 @@ async function initMap() {
     });
 }
 
+// ================================================================
+// BIND EVENTS
+// ================================================================
+
 function bindEvents() {
+    // Кнопка возврата на главную
+    document.getElementById('backToMainBtn').onclick = goToMain;
+    
+    // Кнопки добавления маркеров
     const actions = {
         placeBluforBtn: 'blufor',
         placeOpforBtn: 'opfor',
@@ -1908,7 +1821,7 @@ function bindEvents() {
         document.getElementById(id).onclick = () => {
             const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
             const offset = (Math.random() - 0.5) * 0.002;
-            const label = prompt('Label (optional):');
+            const label = prompt('Метка (опционально):');
             addMarker(pos.lat + offset, pos.lng + offset, type, label || '');
             analyze();
         };
@@ -1919,14 +1832,9 @@ function bindEvents() {
     document.getElementById('clearBtn').onclick = clearAll;
     document.getElementById('exportBtn').onclick = exportData;
     document.getElementById('importBtn').onclick = importData;
-    document.getElementById('puffPieBtn').onclick = togglePuffPie;
+    document.getElementById('togglePieBtn').onclick = togglePuffPie;
     
-    document.getElementById('langSelect').onchange = function() {
-        currentLang = this.value;
-        log(`🌐 Language: ${this.value.toUpperCase()}`);
-        analyze();
-    };
-    
+    // Часы
     setInterval(() => {
         DOM.timeDisplay.textContent = new Date().toLocaleTimeString('ru-RU', { 
             hour12: false,
@@ -1936,11 +1844,13 @@ function bindEvents() {
         });
     }, 1000);
     
+    // Горячие клавиши
     document.addEventListener('keydown', (e) => {
         if (e.key === 'c' || e.key === 'C') centerPosition();
         if (e.key === 'a' || e.key === 'A') analyze();
         if (e.key === 'Delete' || e.key === 'Backspace') clearAll();
         if (e.key === 'p' || e.key === 'P') togglePuffPie();
+        if (e.key === 'Escape') goToMain();
         if (e.key === 'b' || e.key === 'B') {
             const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
             const offset = (Math.random() - 0.5) * 0.002;
@@ -1961,16 +1871,15 @@ function bindEvents() {
 // ================================================================
 
 window.onload = async () => {
-    log('⬛ NAVIMATOR VANGUARD v5.0');
-    log('🔷 CAVIBARA CARTOGRAFA');
-    log('🥧 MAP PUFF PIE MODULE');
-    log('🧩 PRODUCTION GRADE');
+    log('🥧 MAP PUFF PIE v2.0');
+    log('🔷 МОДУЛЬ ВИЗУАЛИЗАЦИИ ДАННЫХ');
+    log('🔗 ИНТЕГРАЦИЯ С ЯДРОМ NAVIMATOR');
+    log('📊 ГОТОВ К РАБОТЕ');
     
     await initMap();
     startGPS();
     bindEvents();
 };
-
 </script>
 </body>
 </html>
