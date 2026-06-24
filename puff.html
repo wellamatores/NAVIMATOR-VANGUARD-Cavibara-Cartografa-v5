@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -12,7 +12,7 @@
     <style>
         /* ================================================================
            NAVIMATOR · MAP PUFF PIE v2.0
-           ПОЛНАЯ ВЕРСИЯ С ИНТЕГРАЦИЕЙ С ЯДРОМ
+           FULL VERSION WITH CORE INTEGRATION
            ================================================================ */
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -77,6 +77,7 @@
             gap: 6px;
             min-height: 44px;
             box-shadow: 0 4px 30px rgba(0, 229, 204, 0.05);
+            z-index: 1002;
         }
 
         .top-bar .brand {
@@ -87,6 +88,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .top-bar .brand .logo {
@@ -117,6 +119,8 @@
             gap: 6px;
             font-weight: 600;
             pointer-events: auto;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .back-btn:hover {
@@ -135,6 +139,7 @@
             border-radius: 4px;
             font-family: 'Courier New', monospace;
             font-weight: 600;
+            flex-shrink: 0;
         }
 
         .status-items {
@@ -142,6 +147,8 @@
             gap: 6px;
             align-items: center;
             flex-wrap: wrap;
+            flex: 1;
+            justify-content: flex-end;
         }
 
         .status-item {
@@ -155,6 +162,7 @@
             align-items: center;
             gap: 4px;
             font-weight: 500;
+            flex-shrink: 0;
         }
 
         .status-item.active {
@@ -505,19 +513,28 @@
         }
 
         /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .top-bar .brand { font-size: 0.7rem; }
+            .top-bar .brand .logo { width: 24px; height: 24px; font-size: 11px; }
+            .version-badge { font-size: 0.45rem; padding: 2px 8px; }
+            .status-item { font-size: 0.45rem; padding: 2px 6px; }
+            .back-btn { font-size: 0.5rem; padding: 3px 10px; }
+        }
+
         @media (max-width: 768px) {
             .panel-right { display: none; }
             .coord-panel { right: 8px; top: 96px; left: auto; min-width: 100px; }
-            .top-bar .brand { font-size: 0.65rem; }
-            .top-bar .brand .logo { width: 22px; height: 22px; font-size: 10px; }
+            .top-bar .brand { font-size: 0.6rem; }
+            .top-bar .brand .logo { width: 20px; height: 20px; font-size: 9px; }
             .action-btn { font-size: 0.4rem; padding: 2px 6px; min-height: 20px; }
             .action-btn i { font-size: 0.4rem; }
             .log-panel { width: 140px; max-height: 50px; }
-            .status-item { font-size: 0.45rem; padding: 2px 6px; }
+            .status-item { font-size: 0.4rem; padding: 2px 5px; }
             .coord-panel { font-size: 0.4rem; padding: 4px 8px; }
             .coord-panel .coord-value { font-size: 0.4rem; }
             .bottom-bar { font-size: 0.4rem; padding: 4px 8px; }
-            .back-btn { font-size: 0.45rem; padding: 3px 10px; }
+            .back-btn { font-size: 0.4rem; padding: 2px 8px; }
+            .version-badge { font-size: 0.4rem; padding: 2px 6px; }
         }
 
         @media (max-width: 480px) {
@@ -530,7 +547,10 @@
             .action-btn { font-size: 0.35rem; padding: 1px 4px; min-height: 16px; }
             .log-panel { bottom: 36px; width: 100px; max-height: 40px; font-size: 0.3rem; }
             .panel-right { display: none; }
-            .back-btn { font-size: 0.4rem; padding: 2px 8px; }
+            .back-btn { font-size: 0.35rem; padding: 1px 6px; }
+            .version-badge { font-size: 0.35rem; padding: 1px 4px; }
+            .top-bar .brand { font-size: 0.5rem; gap: 4px; }
+            .top-bar .brand .logo { width: 18px; height: 18px; font-size: 8px; }
         }
 
         /* ===== SCROLLBAR GLOBAL ===== */
@@ -628,7 +648,7 @@
     <div style="text-align:center;">
         <div class="loading-spinner"></div>
         <div class="loading-text">MAP PUFF PIE v2.0</div>
-        <div class="loading-text" style="font-size:0.5rem;margin-top:4px;opacity:0.6;">ВИЗУАЛИЗАЦИЯ ДАННЫХ...</div>
+        <div class="loading-text" style="font-size:0.5rem;margin-top:4px;opacity:0.6;">DATA VISUALIZATION...</div>
     </div>
 </div>
 
@@ -644,11 +664,11 @@
             <div class="logo">⬡</div>
             <span>MAP PUFF PIE</span>
         </div>
-        <div class="version-badge">МОДУЛЬ · v2.0</div>
+        <div class="version-badge">MODULE · v2.0</div>
         <div class="status-items">
-            <!-- КНОПКА НАЗАД НА ГЛАВНУЮ -->
+            <!-- BACK TO MAIN BUTTON -->
             <button class="back-btn" id="backToMainBtn">
-                <i class="fas fa-arrow-left"></i> НА ГЛАВНУЮ
+                <i class="fas fa-arrow-left"></i> MAIN
             </button>
             <span class="status-item active" id="gpsStatusItem">
                 <i class="fas fa-satellite-dish"></i>
@@ -701,17 +721,17 @@
     <div class="panel-right" id="panelRight">
         <div class="analysis-title">
             <i class="fas fa-brain"></i>
-            <span id="analysisTitle">СИТУАЦИОННЫЙ АНАЛИЗ</span>
+            <span id="analysisTitle">SITUATIONAL ANALYSIS</span>
         </div>
         <div class="threat-index" id="threatIndex">--</div>
         <div class="threat-label" id="threatLabel">--</div>
         <div class="stat-grid">
             <div class="stat-item">
-                УГРОЗА
+                THREAT
                 <span class="value" id="threatLevel">--</span>
             </div>
             <div class="stat-item">
-                СООТН.
+                RATIO
                 <span class="value" id="forceRatio">--</span>
             </div>
             <div class="stat-item">
@@ -719,12 +739,12 @@
                 <span class="value" id="losValue">--</span>
             </div>
             <div class="stat-item">
-                АЛЕРТЫ
+                ALERTS
                 <span class="value" id="alertCount">--</span>
             </div>
         </div>
         <div id="recoList">
-            <div class="reco-item"><i class="fas fa-sync fa-spin"></i> ЗАГРУЗКА...</div>
+            <div class="reco-item"><i class="fas fa-sync fa-spin"></i> LOADING...</div>
         </div>
     </div>
 
@@ -737,7 +757,7 @@
         <div>
             <i class="fas fa-satellite-dish"></i>
             <span>GPS:</span>
-            <span class="gps-status" id="gpsStatus">ИНИЦИАЛИЗАЦИЯ</span>
+            <span class="gps-status" id="gpsStatus">INITIALIZING</span>
         </div>
         <div>
             <i class="fas fa-database"></i>
@@ -749,7 +769,7 @@
         </div>
         <div>
             <i class="fas fa-chart-pie"></i>
-            <span id="pieStatus">АКТИВЕН ✓</span>
+            <span id="pieStatus">ACTIVE ✓</span>
         </div>
     </div>
 
@@ -783,10 +803,10 @@
             <i class="fas fa-location-arrow"></i> CTR
         </button>
         <button class="action-btn" id="analyzeBtn">
-            <i class="fas fa-chart-simple"></i> АНАЛ
+            <i class="fas fa-chart-simple"></i> ANAL
         </button>
         <button class="action-btn danger" id="clearBtn">
-            <i class="fas fa-trash-alt"></i> ОЧИС
+            <i class="fas fa-trash-alt"></i> CLR
         </button>
         <button class="action-btn pie-btn active" id="togglePieBtn">
             <i class="fas fa-chart-pie"></i> PIE ✓
@@ -807,7 +827,7 @@
         </div>
         <div class="log-entry">
             <span class="time">[--:--:--]</span>
-            <span>ЗАГРУЗКА МОДУЛЯ...</span>
+            <span>MODULE LOADING...</span>
         </div>
     </div>
 </div>
@@ -816,8 +836,8 @@
 <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
 <script>
 // ================================================================
-// MAP PUFF PIE v2.0 - ПОЛНАЯ ВЕРСИЯ
-// С ИНТЕГРАЦИЕЙ С ЯДРОМ (index.html)
+// MAP PUFF PIE v2.0 - FULL VERSION
+// WITH CORE INTEGRATION (index.html)
 // ================================================================
 
 // ===== CONFIGURATION =====
@@ -836,7 +856,7 @@ let map, db;
 let markers = [];
 let markerObjects = [];
 let currentPos = { ...CFG.DEFAULT_POS };
-let currentLang = 'ru';
+let currentLang = 'en';
 let watchId = null;
 let isInitialized = false;
 let puffPieInstance = null;
@@ -934,18 +954,18 @@ function updateCoords(lat, lng) {
 }
 
 // ================================================================
-// DATABASE (ОБЩАЯ С ЯДРОМ)
+// DATABASE (SHARED WITH CORE)
 // ================================================================
 function initDB() {
     return new Promise((resolve, reject) => {
         const req = indexedDB.open(CFG.DB_NAME, 2);
         req.onerror = e => { 
-            log(`Ошибка БД: ${e.target.error}`, true); 
+            log(`DB Error: ${e.target.error}`, true); 
             reject(e); 
         };
         req.onsuccess = e => { 
             db = e.target.result; 
-            log('💾 База данных подключена'); 
+            log('💾 Database connected'); 
             resolve(db); 
         };
         req.onupgradeneeded = e => {
@@ -955,7 +975,7 @@ function initDB() {
                 store.createIndex('type', 'type');
                 store.createIndex('version', 'version');
                 store.createIndex('timestamp', 'timestamp');
-                log('📀 Схема БД создана');
+                log('📀 Database schema created');
             }
         };
     });
@@ -985,9 +1005,9 @@ async function saveEntity(data) {
             tx.oncomplete = resolve;
             tx.onerror = reject;
         });
-        log(`💾 ${data.type.toUpperCase()} сохранён`);
+        log(`💾 ${data.type.toUpperCase()} saved`);
     } catch(e) {
-        log(`Ошибка сохранения: ${e}`, true);
+        log(`Save error: ${e}`, true);
     }
 }
 
@@ -1000,14 +1020,14 @@ async function clearDB() {
             tx.oncomplete = resolve;
             tx.onerror = reject;
         });
-        log('🗑️ База данных очищена');
+        log('🗑️ Database cleared');
     } catch(e) {
-        log(`Ошибка очистки: ${e}`, true);
+        log(`Clear error: ${e}`, true);
     }
 }
 
 // ================================================================
-// MARKERS (ОБЩИЕ С ЯДРОМ)
+// MARKERS (SHARED WITH CORE)
 // ================================================================
 function getSymbol(type) {
     const sym = {
@@ -1062,7 +1082,7 @@ function createMarker(type, label = '') {
 
 async function addMarker(lat, lng, type, customLabel = '', skipSave = false) {
     if (markers.length >= CFG.MAX_MARKERS) {
-        log('⚠️ Достигнут лимит маркеров', true);
+        log('⚠️ Max markers reached', true);
         return null;
     }
     
@@ -1089,7 +1109,7 @@ async function addMarker(lat, lng, type, customLabel = '', skipSave = false) {
     if (!skipSave) await saveEntity(data);
     updateStats();
     
-    // Обновляем Puff Pie
+    // Update Puff Pie
     if (puffPieInstance) {
         puffPieInstance.setData(markers);
     }
@@ -1132,7 +1152,7 @@ function analyze() {
         DOM.threatLvl.textContent = '--';
         DOM.forceRatio.textContent = '--';
         DOM.losValue.textContent = '--';
-        DOM.recoList.innerHTML = '<div class="reco-item"><i class="fas fa-info-circle"></i> Нет данных</div>';
+        DOM.recoList.innerHTML = '<div class="reco-item"><i class="fas fa-info-circle"></i> No data</div>';
         return;
     }
     
@@ -1157,19 +1177,19 @@ function analyze() {
     DOM.losValue.textContent = `${los}%`;
     
     const recs = [];
-    if (threatScore > 70) recs.push('🚨 КРИТИЧНО - НЕМЕДЛЕННАЯ ЭВАКУАЦИЯ');
-    else if (threatScore > 45) recs.push('⚠️ ВЫСОКАЯ УГРОЗА - УСИЛЕНИЕ');
-    else if (threatScore > 25) recs.push('⚡ СРЕДНЯЯ - ПОВЫШИТЬ БДИТЕЛЬНОСТЬ');
-    else recs.push('✅ НИЗКАЯ - ПРОДОЛЖАТЬ ОПЕРАЦИИ');
+    if (threatScore > 70) recs.push('🚨 CRITICAL - IMMEDIATE EVACUATION');
+    else if (threatScore > 45) recs.push('⚠️ HIGH THREAT - REINFORCE');
+    else if (threatScore > 25) recs.push('⚡ MEDIUM - INCREASE VIGILANCE');
+    else recs.push('✅ LOW - CONTINUE OPERATIONS');
     
-    if (ratio > 1.5) recs.push('🔴 ПРЕВОСХОДСТВО OPFOR');
-    if (c.blufor === 0) recs.push('⚠️ НЕТ СВОИХ СИЛ');
-    if (c.alert > 3) recs.push('🔔 МНОЖЕСТВЕННЫЕ АЛЕРТЫ');
-    if (c.hvt > 0) recs.push('🎯 ОБНАРУЖЕНА ЦЕЛЬ (HVT)');
-    if (c.med > 0) recs.push('🏥 МЕДИЦИНСКИЕ СРЕДСТВА');
-    if (c.sar > 0) recs.push('🔍 АКТИВЕН ПОИСК (SAR)');
-    if (c.mesh > 0) recs.push('📡 MESH-СЕТЬ АКТИВНА');
-    if (recs.length < 3) recs.push('📡 ПОДДЕРЖИВАТЬ СИТУАЦИОННУЮ ОСВЕДОМЛЁННОСТЬ');
+    if (ratio > 1.5) recs.push('🔴 OPFOR SUPERIORITY');
+    if (c.blufor === 0) recs.push('⚠️ NO FRIENDLY FORCES');
+    if (c.alert > 3) recs.push('🔔 MULTIPLE ALERTS');
+    if (c.hvt > 0) recs.push('🎯 HVT DETECTED');
+    if (c.med > 0) recs.push('🏥 MEDICAL ASSETS');
+    if (c.sar > 0) recs.push('🔍 SAR ACTIVE');
+    if (c.mesh > 0) recs.push('📡 MESH NETWORK ACTIVE');
+    if (recs.length < 3) recs.push('📡 MAINTAIN SITUATIONAL AWARENESS');
     
     DOM.recoList.innerHTML = recs.slice(0, 6).map(r =>
         `<div class="reco-item"><i class="fas fa-chevron-right"></i> ${r}</div>`
@@ -1180,7 +1200,7 @@ function analyze() {
 // CLEAR
 // ================================================================
 async function clearAll() {
-    if (!confirm('⚠️ ОЧИСТИТЬ ВСЕ ДАННЫЕ?')) return;
+    if (!confirm('⚠️ CLEAR ALL DATA?')) return;
     markerObjects.forEach(({ marker }) => marker.remove());
     markerObjects = [];
     markers = [];
@@ -1188,7 +1208,7 @@ async function clearAll() {
     updateStats();
     analyze();
     if (puffPieInstance) puffPieInstance.setData(markers);
-    log('🗑️ Все данные очищены');
+    log('🗑️ All data cleared');
 }
 
 // ================================================================
@@ -1197,7 +1217,7 @@ async function clearAll() {
 function onGPS(pos) {
     currentPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
     updateCoords(currentPos.lat, currentPos.lng);
-    DOM.gpsStatus.textContent = 'АКТИВЕН ✓';
+    DOM.gpsStatus.textContent = 'ACTIVE ✓';
     DOM.gpsStatus.className = 'gps-status active';
     DOM.gpsStatusText.textContent = 'GPS ✓';
     const item = document.getElementById('gpsStatusItem');
@@ -1205,7 +1225,7 @@ function onGPS(pos) {
 }
 
 function onGPSError(err) {
-    DOM.gpsStatus.textContent = 'ОТКАЗ';
+    DOM.gpsStatus.textContent = 'FAILBACK';
     DOM.gpsStatus.className = 'gps-status';
     DOM.gpsStatusText.textContent = 'GPS ✗';
     document.getElementById('gpsStatusItem').classList.remove('active');
@@ -1219,18 +1239,18 @@ function startGPS() {
             maximumAge: 10000,
             timeout: 30000
         });
-        log('🛰️ GPS-трекинг запущен');
+        log('🛰️ GPS tracking started');
     } else {
-        DOM.gpsStatus.textContent = 'НЕ ПОДДЕРЖИВАЕТСЯ';
+        DOM.gpsStatus.textContent = 'NOT SUPPORTED';
         DOM.gpsStatusText.textContent = 'GPS ✗';
-        log('⚠️ GPS не поддерживается', true);
+        log('⚠️ GPS not supported', true);
     }
 }
 
 function centerPosition() {
     const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
     map.flyTo({ center: [pos.lng, pos.lat], zoom: 14, duration: 800 });
-    log('🎯 Центрирование на позиции');
+    log('🎯 Centered on position');
 }
 
 // ================================================================
@@ -1246,7 +1266,7 @@ function exportData() {
     a.download = `puff_pie_export_${new Date().toISOString().slice(0,10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    log('📤 Данные экспортированы');
+    log('📤 Data exported');
 }
 
 function importData() {
@@ -1259,7 +1279,7 @@ function importData() {
         try {
             const text = await file.text();
             const data = JSON.parse(text);
-            if (!Array.isArray(data)) throw new Error('Неверный формат');
+            if (!Array.isArray(data)) throw new Error('Invalid format');
             
             markerObjects.forEach(({ marker }) => marker.remove());
             markerObjects = [];
@@ -1273,16 +1293,16 @@ function importData() {
             }
             analyze();
             if (puffPieInstance) puffPieInstance.setData(markers);
-            log(`📥 Импортировано ${data.length} объектов`);
+            log(`📥 Imported ${data.length} entities`);
         } catch(err) {
-            log(`Ошибка импорта: ${err.message}`, true);
+            log(`Import error: ${err.message}`, true);
         }
     };
     input.click();
 }
 
 // ================================================================
-// MAP PUFF PIE CLASS (ЯДРО МОДУЛЯ)
+// MAP PUFF PIE CLASS (CORE MODULE)
 // ================================================================
 
 class MapPuffPie {
@@ -1316,7 +1336,7 @@ class MapPuffPie {
             this.startAutoUpdate();
         }
         this.render();
-        log('🥧 Puff Pie инициализирован');
+        log('🥧 Puff Pie initialized');
     }
     
     createContainer() {
@@ -1389,9 +1409,9 @@ class MapPuffPie {
     
     getLabel(type) {
         const labels = {
-            'blufor': 'BLUFOR', 'opfor': 'OPFOR', 'alert': '⚠ АЛЕРТ',
-            'poi': '📍 ТОЧКА', 'hvt': '🎯 ЦЕЛЬ', 'cp': '⭐ КП',
-            'med': '🏥 МЕД', 'sar': '🔍 ПОИСК', 'mesh': '📡 MESH'
+            'blufor': 'BLUFOR', 'opfor': 'OPFOR', 'alert': '⚠ ALERT',
+            'poi': '📍 POI', 'hvt': '🎯 HVT', 'cp': '⭐ CP',
+            'med': '🏥 MED', 'sar': '🔍 SAR', 'mesh': '📡 MESH'
         };
         return labels[type] || type.toUpperCase();
     }
@@ -1417,7 +1437,7 @@ class MapPuffPie {
             ctx.font = '14px "Segoe UI", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('НЕТ ДАННЫХ', cx, cy);
+            ctx.fillText('NO DATA', cx, cy);
             return;
         }
         this.drawPuffBackground(ctx, cx, cy, radius);
@@ -1456,7 +1476,7 @@ class MapPuffPie {
         ctx.fillText(total, cx, cy - 6);
         ctx.fillStyle = '#8BC88B';
         ctx.font = '9px "Segoe UI", sans-serif';
-        ctx.fillText('ВСЕГО', cx, cy + 18);
+        ctx.fillText('TOTAL', cx, cy + 18);
         this.drawLegend(ctx, w, h);
         this.drawPuffParticles(ctx, cx, cy, radius);
     }
@@ -1634,15 +1654,15 @@ class MapPuffPie {
         `;
         popup.innerHTML = `
             <h3 style="color: ${zone.color}; margin: 0 0 8px 0; font-size: 14px;">${this.getLabel(zone.type)}</h3>
-            <div style="font-size: 11px; color: #8BC88B; margin-bottom: 8px;">Всего: ${zone.count} объектов</div>
+            <div style="font-size: 11px; color: #8BC88B; margin-bottom: 8px;">Total: ${zone.count} entities</div>
             ${markersOfType.slice(0, 20).map(m => `
                 <div style="padding: 3px 0; border-bottom: 1px solid #1A3A1A; font-size: 10px; color: #AAA;">
                     ${m.label || m.type}
                     <span style="color: #4A7A4A; float: right;">${m.lat.toFixed(4)}, ${m.lng.toFixed(4)}</span>
                 </div>
             `).join('')}
-            ${markersOfType.length > 20 ? `<div style="color: #4A7A4A; font-size: 10px; text-align: center; padding: 4px;">+ ещё ${markersOfType.length - 20}</div>` : ''}
-            <div style="margin-top: 8px; font-size: 10px; color: #4A7A4A; text-align: right;">${(zone.percentage * 100).toFixed(1)}% от всех объектов</div>
+            ${markersOfType.length > 20 ? `<div style="color: #4A7A4A; font-size: 10px; text-align: center; padding: 4px;">+ ${markersOfType.length - 20} more</div>` : ''}
+            <div style="margin-top: 8px; font-size: 10px; color: #4A7A4A; text-align: right;">${(zone.percentage * 100).toFixed(1)}% of all objects</div>
         `;
         const rect = this.canvas.getBoundingClientRect();
         const mapRect = document.getElementById('map').getBoundingClientRect();
@@ -1676,7 +1696,7 @@ class MapPuffPie {
 }
 
 // ================================================================
-// УПРАВЛЕНИЕ PUFF PIE
+// PUFF PIE CONTROL
 // ================================================================
 
 function initPuffPie() {
@@ -1691,8 +1711,8 @@ function initPuffPie() {
     const btn = document.getElementById('togglePieBtn');
     btn.classList.add('active');
     btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE ✓';
-    DOM.pieStatus.textContent = 'АКТИВЕН ✓';
-    log('🥧 Puff Pie активирован');
+    DOM.pieStatus.textContent = 'ACTIVE ✓';
+    log('🥧 Puff Pie activated');
 }
 
 function togglePuffPie() {
@@ -1702,26 +1722,26 @@ function togglePuffPie() {
     if (puffPieInstance.isVisible) {
         btn.classList.add('active');
         btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE ✓';
-        DOM.pieStatus.textContent = 'АКТИВЕН ✓';
-        log('🥧 Puff Pie показан');
+        DOM.pieStatus.textContent = 'ACTIVE ✓';
+        log('🥧 Puff Pie shown');
     } else {
         btn.classList.remove('active');
         btn.innerHTML = '<i class="fas fa-chart-pie"></i> PIE';
-        DOM.pieStatus.textContent = 'СКРЫТ';
-        log('🥧 Puff Pie скрыт');
+        DOM.pieStatus.textContent = 'HIDDEN';
+        log('🥧 Puff Pie hidden');
     }
 }
 
 // ================================================================
-// НАВИГАЦИЯ НА ГЛАВНУЮ
+// NAVIGATION TO MAIN
 // ================================================================
 
 function goToMain() {
-    // Сохраняем данные перед уходом
+    // Save data before leaving
     if (markers.length > 0) {
-        log('💾 Сохранение данных перед переходом...');
+        log('💾 Saving data before navigation...');
     }
-    // Переход на главную страницу
+    // Navigate to main page
     window.location.href = 'index.html';
 }
 
@@ -1748,47 +1768,47 @@ async function initMap() {
         const { lat, lng } = e.lngLat;
         const types = ['blufor', 'opfor', 'alert', 'poi', 'hvt', 'cp', 'med', 'sar'];
         const list = types.map((t, i) => `${i+1}-${t.toUpperCase()}`).join(' ');
-        const choice = prompt(`Выберите тип: ${list}`);
+        const choice = prompt(`Select type: ${list}`);
         if (choice && types[parseInt(choice) - 1]) {
-            const label = prompt('Метка (опционально):');
+            const label = prompt('Label (optional):');
             await addMarker(lat, lng, types[parseInt(choice) - 1], label || '');
             analyze();
         }
     });
     
     map.on('load', async () => {
-        log('🗺️ Карта загружена');
+        log('🗺️ Map loaded');
         await initDB();
         const saved = await loadEntities();
         for (const m of saved) {
             await addMarker(m.lat, m.lng, m.type, m.label, true);
         }
-        log(`📌 Восстановлено ${saved.length} объектов`);
+        log(`📌 Restored ${saved.length} entities`);
         updateStats();
         analyze();
         updateCoords(currentPos.lat, currentPos.lng);
         setInterval(analyze, CFG.UPDATE_INTERVAL);
-        DOM.dbStatus.textContent = 'БД OK';
+        DOM.dbStatus.textContent = 'DB OK';
         
-        // Демо-данные если пусто
+        // Demo data if empty
         if (saved.length === 0) {
-            await addMarker(55.7558, 37.6173, 'blufor', 'КП МОСКВА');
+            await addMarker(55.7558, 37.6173, 'blufor', 'CP MOSCOW');
             await addMarker(55.7620, 37.6220, 'opfor', 'OPFOR 1');
-            await addMarker(55.7480, 37.6100, 'alert', 'ЗОНА АЛЕРТА');
-            await addMarker(55.7720, 37.6300, 'poi', 'СТРАТЕГИЧЕСКАЯ ТОЧКА');
-            await addMarker(55.7400, 37.6000, 'hvt', 'ЦЕЛЬ-АЛЬФА');
-            await addMarker(55.7800, 37.6400, 'med', 'ПОЛЕВОЙ ГОСПИТАЛЬ');
-            await addMarker(55.7300, 37.5900, 'sar', 'ГРУППА ПОИСКА');
-            await addMarker(55.7500, 37.6250, 'cp', 'ТАКТИЧЕСКИЙ КП');
+            await addMarker(55.7480, 37.6100, 'alert', 'ALERT ZONE');
+            await addMarker(55.7720, 37.6300, 'poi', 'STRATEGIC POI');
+            await addMarker(55.7400, 37.6000, 'hvt', 'HVT-ALPHA');
+            await addMarker(55.7800, 37.6400, 'med', 'FIELD HOSPITAL');
+            await addMarker(55.7300, 37.5900, 'sar', 'SAR TEAM');
+            await addMarker(55.7500, 37.6250, 'cp', 'TACTICAL CP');
             analyze();
         }
         
-        // Инициализируем Puff Pie
+        // Initialize Puff Pie
         initPuffPie();
         
         isInitialized = true;
         DOM.loadingOverlay.classList.add('hidden');
-        log('✅ Система готова к работе');
+        log('✅ System ready');
     });
     
     map.on('move', () => {
@@ -1802,10 +1822,10 @@ async function initMap() {
 // ================================================================
 
 function bindEvents() {
-    // Кнопка возврата на главную
+    // Back to main button
     document.getElementById('backToMainBtn').onclick = goToMain;
     
-    // Кнопки добавления маркеров
+    // Marker buttons
     const actions = {
         placeBluforBtn: 'blufor',
         placeOpforBtn: 'opfor',
@@ -1821,7 +1841,7 @@ function bindEvents() {
         document.getElementById(id).onclick = () => {
             const pos = currentPos.lat ? currentPos : CFG.DEFAULT_POS;
             const offset = (Math.random() - 0.5) * 0.002;
-            const label = prompt('Метка (опционально):');
+            const label = prompt('Label (optional):');
             addMarker(pos.lat + offset, pos.lng + offset, type, label || '');
             analyze();
         };
@@ -1834,9 +1854,9 @@ function bindEvents() {
     document.getElementById('importBtn').onclick = importData;
     document.getElementById('togglePieBtn').onclick = togglePuffPie;
     
-    // Часы
+    // Clock
     setInterval(() => {
-        DOM.timeDisplay.textContent = new Date().toLocaleTimeString('ru-RU', { 
+        DOM.timeDisplay.textContent = new Date().toLocaleTimeString('en-US', { 
             hour12: false,
             hour: '2-digit',
             minute: '2-digit',
@@ -1844,7 +1864,7 @@ function bindEvents() {
         });
     }, 1000);
     
-    // Горячие клавиши
+    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         if (e.key === 'c' || e.key === 'C') centerPosition();
         if (e.key === 'a' || e.key === 'A') analyze();
@@ -1872,9 +1892,9 @@ function bindEvents() {
 
 window.onload = async () => {
     log('🥧 MAP PUFF PIE v2.0');
-    log('🔷 МОДУЛЬ ВИЗУАЛИЗАЦИИ ДАННЫХ');
-    log('🔗 ИНТЕГРАЦИЯ С ЯДРОМ NAVIMATOR');
-    log('📊 ГОТОВ К РАБОТЕ');
+    log('🔷 DATA VISUALIZATION MODULE');
+    log('🔗 CORE INTEGRATION: NAVIMATOR');
+    log('📊 READY');
     
     await initMap();
     startGPS();
